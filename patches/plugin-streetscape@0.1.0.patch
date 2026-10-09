@@ -1,0 +1,672 @@
+diff --git a/src/presets-panel.tsx b/src/presets-panel.tsx
+index 34cbc30..08c1822 100644
+--- a/src/presets-panel.tsx
++++ b/src/presets-panel.tsx
+@@ -1,7 +1,7 @@
+ 'use client'
+ 
+ import { type AnyNode, type AnyNodeId, useScene } from '@pascal-app/core'
+-import { SegmentedControl, SliderControl, ToggleControl, useEditor } from '@pascal-app/editor'
++import { SegmentedControl, SliderControl, ToggleControl, useDisplayText, useEditor } from '@pascal-app/editor'
+ import { useViewer } from '@pascal-app/viewer'
+ import { type DragEvent, Fragment, useMemo, useState } from 'react'
+ import {
+@@ -207,7 +207,7 @@ const activateRoadSignTool = (signId: RoadSignId) => {
+ function StreetLightArtwork() {
+   return (
+     <img
+-      alt="Street light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={STREET_LIGHT_THUMBNAIL}
+@@ -218,7 +218,7 @@ function StreetLightArtwork() {
+ function PostTopLightArtwork() {
+   return (
+     <img
+-      alt="Pedestrian post-top light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={POST_TOP_LIGHT_THUMBNAIL}
+@@ -229,7 +229,7 @@ function PostTopLightArtwork() {
+ function HeritageCrookLightArtwork() {
+   return (
+     <img
+-      alt="Heritage Bishop's Crook light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={HERITAGE_CROOK_LIGHT_THUMBNAIL}
+@@ -240,7 +240,7 @@ function HeritageCrookLightArtwork() {
+ function CobraHeadLightArtwork() {
+   return (
+     <img
+-      alt="Cobra-head roadway light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={COBRA_HEAD_LIGHT_THUMBNAIL}
+@@ -251,7 +251,7 @@ function CobraHeadLightArtwork() {
+ function TwinArmMedianLightArtwork() {
+   return (
+     <img
+-      alt="Twin-arm median roadway light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={TWIN_ARM_MEDIAN_LIGHT_THUMBNAIL}
+@@ -262,7 +262,7 @@ function TwinArmMedianLightArtwork() {
+ function MultiHeadAreaLightArtwork() {
+   return (
+     <img
+-      alt="Triple or four-way area pole"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={MULTI_HEAD_AREA_LIGHT_THUMBNAIL}
+@@ -273,7 +273,7 @@ function MultiHeadAreaLightArtwork() {
+ function TrussRoadwayLightArtwork() {
+   return (
+     <img
+-      alt="Truss roadway light"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={TRUSS_ROADWAY_LIGHT_THUMBNAIL}
+@@ -281,10 +281,10 @@ function TrussRoadwayLightArtwork() {
+   )
+ }
+ 
+-function CatalogLampArtwork({ label, thumbnail = CATALOG_LAMP_THUMBNAIL }: { label: string; thumbnail?: string }) {
++function CatalogLampArtwork({ label: _label, thumbnail = CATALOG_LAMP_THUMBNAIL }: { label: string; thumbnail?: string }) {
+   return (
+     <img
+-      alt={label}
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={thumbnail}
+@@ -295,7 +295,7 @@ function CatalogLampArtwork({ label, thumbnail = CATALOG_LAMP_THUMBNAIL }: { lab
+ function UtilityPoleArtwork() {
+   return (
+     <img
+-      alt="Utility pole"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={UTILITY_POLE_THUMBNAIL}
+@@ -305,14 +305,14 @@ function UtilityPoleArtwork() {
+ 
+ function StreetInfrastructureArtwork({
+   kind,
+-  label,
++  label: _label,
+ }: {
+   kind: StreetInfrastructureKind
+   label: string
+ }) {
+   return (
+     <img
+-      alt={label}
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={STREET_INFRASTRUCTURE_THUMBNAILS[kind]}
+@@ -323,7 +323,7 @@ function StreetInfrastructureArtwork({
+ function RoadSignArtwork({ signId }: { signId: RoadSignId }) {
+   return (
+     <img
+-      alt={`${signId} road sign`}
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={ROAD_SIGN_THUMBNAILS[signId]}
+@@ -334,7 +334,7 @@ function RoadSignArtwork({ signId }: { signId: RoadSignId }) {
+ function RoadNetworkArtwork() {
+   return (
+     <img
+-      alt="Road network"
++      alt=""
+       className="aspect-square w-full rounded-lg object-cover ring-1 ring-black/10"
+       draggable={false}
+       src={ROAD_NETWORK_THUMBNAIL}
+@@ -344,6 +344,7 @@ function RoadNetworkArtwork() {
+ 
+ /** Streetscape asset cards and their placement brush settings. */
+ export default function StreetscapePanel() {
++  const t = useDisplayText()
+   const selectedIds = useViewer((s) => s.selection.selectedIds)
+   const activeLevelId = useViewer((s) => s.selection.levelId)
+   const [roadExchangeStatus, setRoadExchangeStatus] = useState<{
+@@ -656,23 +657,23 @@ export default function StreetscapePanel() {
+     <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4 text-sidebar-foreground">
+       <header className="flex flex-col gap-3">
+         <div className="flex items-center justify-between">
+-          <h2 className="font-semibold text-base">Streetscape</h2>
++          <h2 className="font-semibold text-base">{t('Streetscape')}</h2>
+           <span className="rounded-full bg-sidebar-accent px-2 py-0.5 text-sidebar-foreground/70 text-xs">
+-            {count} placed
++            {count} {t('placed')}
+           </span>
+         </div>
+         <SegmentedControl
+           onChange={setPanelCategory}
+           options={[
+-            { label: 'Roads', value: 'roads' },
+-            { label: 'Lights', value: 'lighting' },
+-            { label: 'Signs', value: 'signs' },
+-            { label: 'Utilities', value: 'utilities' },
++            { label: t('Roads'), value: 'roads' },
++            { label: t('Lights'), value: 'lighting' },
++            { label: t('Signs'), value: 'signs' },
++            { label: t('Utilities'), value: 'utilities' },
+           ]}
+           value={panelCategory}
+         />
+         <p className="text-sidebar-foreground/50 text-xs">
+-          {panelCategory === 'roads'
++          {t(panelCategory === 'roads'
+             ? roadNetworkArmed
+               ? 'Click the ground to set road points. Enter or double-click finishes the path.'
+               : 'Click or drag Road into the scene, then set two or more points.'
+@@ -684,7 +685,7 @@ export default function StreetscapePanel() {
+                     ? 'Choose a lamp, then click the ground to place it.'
+                     : panelCategory === 'signs'
+                       ? 'Choose a sign, then click the ground to place it.'
+-                      : 'Choose a utility asset, then click the ground to place it.'}
++                      : 'Choose a utility asset, then click the ground to place it.')}
+         </p>
+       </header>
+ 
+@@ -700,20 +701,20 @@ export default function StreetscapePanel() {
+             draggable
+             onClick={activateRoadNetworkTool}
+             onDragStart={dragRoadNetworkTool}
+-            title="Click or drag to start drawing a connected road network"
++            title={t('Click or drag to start drawing a connected road network')}
+             type="button"
+           >
+             <div className="transition-transform group-hover:scale-[1.01]">
+               <RoadNetworkArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-2 px-0.5 font-medium text-xs">
+-              <span>Road</span>
++              <span>{t('Road')}</span>
+               <span className="font-normal text-sidebar-foreground/45">
+-                {roadSegmentCount} segment{roadSegmentCount === 1 ? '' : 's'}
++                {roadSegmentCount} {t(roadSegmentCount === 1 ? 'segment' : 'segments')}
+               </span>
+             </span>
+             <span className="px-0.5 text-[11px] text-sidebar-foreground/50">
+-              Drag or click to draw straight, spline and connected roads
++              {t('Drag or click to draw straight, spline and connected roads')}
+             </span>
+             {roadNetworkArmed && (
+               <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-sidebar-ring ring-2 ring-sidebar-accent" />
+@@ -724,19 +725,19 @@ export default function StreetscapePanel() {
+             <div className="flex items-start justify-between gap-2">
+               <div className="flex flex-col gap-0.5">
+                 <span className="font-medium text-sidebar-foreground text-sm">
+-                  Road cross-section
++                  {t('Road cross-section')}
+                 </span>
+                 <span className="text-[11px] text-sidebar-foreground/50">
+-                  {roadLaneCount} lane{roadLaneCount === 1 ? '' : 's'} ·{' '}
+-                  {roadCrossSection.totalWidth.toFixed(2)} m overall
++                  {roadLaneCount} {t(roadLaneCount === 1 ? 'lane' : 'lanes')} ·{' '}
++                  {roadCrossSection.totalWidth.toFixed(2)} m {t('overall')}
+                 </span>
+               </div>
+             </div>
+ 
+             <label className="flex flex-col gap-1.5">
+-              <span className="font-medium text-sidebar-foreground/65 text-xs">Preset</span>
++              <span className="font-medium text-sidebar-foreground/65 text-xs">{t('Preset')}</span>
+               <select
+-                aria-label="Road preset"
++                aria-label={t('Road preset')}
+                 className="h-8 rounded-md border border-sidebar-border bg-sidebar px-2 text-sidebar-foreground text-xs outline-none focus:ring-1 focus:ring-sidebar-ring"
+                 onChange={(event) =>
+                   useStreetscapeStore
+@@ -747,7 +748,7 @@ export default function StreetscapePanel() {
+               >
+                 {ROAD_STYLE_PRESET_IDS.map((presetId) => (
+                   <option key={presetId} value={presetId}>
+-                    {DEFAULT_ROAD_STYLE_PRESETS[presetId].name}
++                    {t(DEFAULT_ROAD_STYLE_PRESETS[presetId].name)}
+                   </option>
+                 ))}
+               </select>
+@@ -756,9 +757,9 @@ export default function StreetscapePanel() {
+             <SegmentedControl
+               onChange={useStreetscapeStore.getState().setRoadCrossSectionEditorTab}
+               options={[
+-                { label: 'Roadway', value: 'roadway' },
+-                { label: 'Left', value: 'left' },
+-                { label: 'Right', value: 'right' },
++                { label: t('Roadway'), value: 'roadway' },
++                { label: t('Left'), value: 'left' },
++                { label: t('Right'), value: 'right' },
+               ]}
+               value={roadCrossSectionEditorTab}
+             />
+@@ -766,7 +767,7 @@ export default function StreetscapePanel() {
+             {selectedRoadSide === null ? (
+               <>
+                 <SliderControl
+-                  label="Lane count"
++                  label={t('Lane count')}
+                   max={12}
+                   min={1}
+                   onChange={useStreetscapeStore.getState().setRoadLaneCount}
+@@ -776,7 +777,7 @@ export default function StreetscapePanel() {
+                   value={roadLaneCount}
+                 />
+                 <SliderControl
+-                  label="Lane width"
++                  label={t('Lane width')}
+                   max={5}
+                   min={2.4}
+                   onChange={useStreetscapeStore.getState().setRoadLaneWidth}
+@@ -787,7 +788,7 @@ export default function StreetscapePanel() {
+                   value={roadLaneWidth}
+                 />
+                 <SliderControl
+-                  label="Shoulder"
++                  label={t('Shoulder')}
+                   max={4}
+                   min={0}
+                   onChange={useStreetscapeStore.getState().setRoadShoulderWidth}
+@@ -798,7 +799,7 @@ export default function StreetscapePanel() {
+                   value={roadShoulderWidth}
+                 />
+                 <SliderControl
+-                  label="Median"
++                  label={t('Median')}
+                   max={12}
+                   min={0}
+                   onChange={useStreetscapeStore.getState().setRoadMedianWidth}
+@@ -812,12 +813,12 @@ export default function StreetscapePanel() {
+             ) : (
+               <>
+                 <span className="text-[11px] text-sidebar-foreground/45">
+-                  Set a width to zero to remove that component from this side.
++                  {t('Set a width to zero to remove that component from this side.')}
+                 </span>
+                 {ROAD_SIDE_COMPONENT_CONTROLS.map((control) => (
+                   <SliderControl
+                     key={control.key}
+-                    label={control.label}
++                    label={t(control.label)}
+                     max={control.max}
+                     min={0}
+                     onChange={(value) =>
+@@ -842,19 +843,19 @@ export default function StreetscapePanel() {
+           </div>
+ 
+           <div className="flex flex-col gap-1.5">
+-            <span className="font-medium text-sidebar-foreground/65 text-xs">Alignment</span>
++            <span className="font-medium text-sidebar-foreground/65 text-xs">{t('Alignment')}</span>
+             <SegmentedControl
+               onChange={useStreetscapeStore.getState().setRoadAlignmentMode}
+               options={[
+-                { label: 'Straight', value: 'straight' },
+-                { label: 'Spline', value: 'spline' },
++                { label: t('Straight'), value: 'straight' },
++                { label: t('Spline'), value: 'spline' },
+               ]}
+               value={roadAlignmentMode}
+             />
+           </div>
+ 
+           <SliderControl
+-            label="Bend radius"
++            label={t('Bend radius')}
+             max={25}
+             min={0.5}
+             onChange={useStreetscapeStore.getState().setRoadBendRadius}
+@@ -866,21 +867,21 @@ export default function StreetscapePanel() {
+           />
+ 
+           <div className="flex flex-col gap-1.5">
+-            <span className="font-medium text-sidebar-foreground/65 text-xs">Elevation</span>
++            <span className="font-medium text-sidebar-foreground/65 text-xs">{t('Elevation')}</span>
+             <SegmentedControl
+               onChange={useStreetscapeStore.getState().setRoadElevationMode}
+-              options={ROAD_ELEVATION_OPTIONS}
++              options={ROAD_ELEVATION_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
+               value={roadElevationMode}
+             />
+           </div>
+ 
+           <div className="flex flex-col gap-1.5">
+-            <span className="font-medium text-sidebar-foreground/65 text-xs">Crossings</span>
++            <span className="font-medium text-sidebar-foreground/65 text-xs">{t('Crossings')}</span>
+             <SegmentedControl
+               onChange={useStreetscapeStore.getState().setRoadJoinMode}
+               options={[
+-                { label: 'Auto join', value: 'auto' },
+-                { label: 'No join', value: 'suppress' },
++                { label: t('Auto join'), value: 'auto' },
++                { label: t('No join'), value: 'suppress' },
+               ]}
+               value={roadJoinMode}
+             />
+@@ -892,15 +893,15 @@ export default function StreetscapePanel() {
+           >
+             <div className="flex flex-col gap-0.5">
+               <span className="font-medium text-sidebar-foreground text-sm">
+-                Automatic infrastructure
++                {t('Automatic infrastructure')}
+               </span>
+               <span className="text-[11px] text-sidebar-foreground/50">
+-                Add editable utility assets when each road segment is committed.
++                {t('Add editable utility assets when each road segment is committed.')}
+               </span>
+             </div>
+             <ToggleControl
+               checked={roadAutoInfrastructure.enabled}
+-              label="Add automatically"
++              label={t('Add automatically')}
+               onChange={useStreetscapeStore.getState().setRoadAutoInfrastructureEnabled}
+             />
+             {roadAutoInfrastructure.enabled ? (
+@@ -909,7 +910,7 @@ export default function StreetscapePanel() {
+                   <div data-road-auto-infrastructure-kind={option.kind} key={option.kind}>
+                     <ToggleControl
+                       checked={roadAutoInfrastructure.items[option.kind]}
+-                      label={option.label}
++                      label={t(option.label)}
+                       onChange={(checked) =>
+                         useStreetscapeStore
+                           .getState()
+@@ -921,23 +922,22 @@ export default function StreetscapePanel() {
+               </div>
+             ) : null}
+             <span className="text-[10px] leading-snug text-sidebar-foreground/45">
+-              Items stay independent after placement, so moving or rotating them will not snap them back.
++              {t('Items stay independent after placement, so moving or rotating them will not snap them back.')}
+             </span>
+             {roadAutoInfrastructure.enabled ? (
+               <span className="text-[10px] leading-snug text-sidebar-foreground/45">
+-                Drainage reserves {AUTO_DRAINAGE_MIN_GUTTER_WIDTH.toFixed(2)} m gutters; hydrants reserve a{' '}
+-                {AUTO_HYDRANT_MIN_VERGE_WIDTH.toFixed(2)} m roadside verge.
++                {t(`Drainage reserves ${AUTO_DRAINAGE_MIN_GUTTER_WIDTH.toFixed(2)} m gutters; hydrants reserve a ${AUTO_HYDRANT_MIN_VERGE_WIDTH.toFixed(2)} m roadside verge.`)}
+               </span>
+             ) : null}
+           </div>
+ 
+           <div className="flex flex-col gap-2 rounded-xl border border-sidebar-border p-3">
+             <div className="flex flex-col gap-0.5">
+-              <span className="font-medium text-sidebar-foreground text-sm">Road graph data</span>
++              <span className="font-medium text-sidebar-foreground text-sm">{t('Road graph data')}</span>
+               <span className="text-[11px] text-sidebar-foreground/50">
+                 {selectedRoadNetwork
+-                  ? `${roadSegmentLabel(Object.keys(selectedRoadNetwork.edges).length)} selected`
+-                  : 'Import creates a new road; select one to replace or export it.'}
++                  ? t(`${roadSegmentLabel(Object.keys(selectedRoadNetwork.edges).length)} selected`)
++                  : t('Import creates a new road; select one to replace or export it.')}
+               </span>
+             </div>
+             <div className="grid grid-cols-2 gap-2">
+@@ -947,7 +947,7 @@ export default function StreetscapePanel() {
+                 onClick={copySelectedRoadGraph}
+                 type="button"
+               >
+-                Copy JSON
++                {t('Copy JSON')}
+               </button>
+               <button
+                 className="rounded-md border border-sidebar-border bg-sidebar px-2 py-1.5 font-medium text-xs transition-colors hover:bg-sidebar-accent disabled:cursor-not-allowed disabled:opacity-40"
+@@ -955,7 +955,7 @@ export default function StreetscapePanel() {
+                 onClick={importRoadGraphFromClipboard}
+                 type="button"
+               >
+-                Import JSON
++                {t('Import JSON')}
+               </button>
+               <button
+                 className="col-span-2 rounded-md border border-sidebar-border bg-sidebar px-2 py-1.5 font-medium text-xs transition-colors hover:bg-sidebar-accent disabled:cursor-not-allowed disabled:opacity-40"
+@@ -964,7 +964,7 @@ export default function StreetscapePanel() {
+                 onClick={reviewSelectedRoadCleanup}
+                 type="button"
+               >
+-                Review cleanup
++                {t('Review cleanup')}
+               </button>
+             </div>
+             {roadCleanupReview && roadCleanupReview.networkId === selectedRoadNetwork?.id && (
+@@ -974,19 +974,18 @@ export default function StreetscapePanel() {
+               >
+                 <div className="flex items-start justify-between gap-2">
+                   <div className="flex flex-col gap-0.5">
+-                    <span className="font-semibold text-xs">Cleanup review</span>
++                    <span className="font-semibold text-xs">{t('Cleanup review')}</span>
+                     <span className="text-[10px] text-sidebar-foreground/55">
+-                      {roadCleanupReview.plan.options.horizontalTolerance.toFixed(2)} m plan ·{' '}
+-                      {roadCleanupReview.plan.options.verticalTolerance.toFixed(2)} m vertical
++                      {t(`${roadCleanupReview.plan.options.horizontalTolerance.toFixed(2)} m plan · ${roadCleanupReview.plan.options.verticalTolerance.toFixed(2)} m vertical`)}
+                     </span>
+                   </div>
+                   <span className="rounded-full bg-sidebar px-2 py-0.5 font-medium text-[10px]">
+-                    {roadCleanupReview.plan.changes.length} changes
++                    {t(`${roadCleanupReview.plan.changes.length} changes`)}
+                   </span>
+                 </div>
+                 {roadCleanupReview.plan.changes.length === 0 ? (
+                   <p className="m-0 text-[11px] text-sidebar-foreground/65">
+-                    This road graph is already clean at the shown tolerances.
++                    {t('This road graph is already clean at the shown tolerances.')}
+                   </p>
+                 ) : (
+                   <ol className="m-0 flex max-h-52 list-decimal flex-col gap-1.5 overflow-y-auto pl-4">
+@@ -996,9 +995,9 @@ export default function StreetscapePanel() {
+                         data-road-cleanup-change={change.kind}
+                         key={change.id}
+                       >
+-                        <span className="font-medium">{change.title}</span>
++                        <span className="font-medium">{t(change.title)}</span>
+                         <span className="block text-[10px] leading-snug text-sidebar-foreground/55">
+-                          {change.detail}
++                          {t(change.detail)}
+                         </span>
+                       </li>
+                     ))}
+@@ -1006,8 +1005,7 @@ export default function StreetscapePanel() {
+                 )}
+                 {roadCleanupReview.plan.afterIssues.length > 0 && (
+                   <div className="rounded-md bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
+-                    {roadCleanupReview.plan.afterIssues.length} validation issue
+-                    {roadCleanupReview.plan.afterIssues.length === 1 ? '' : 's'} will remain after cleanup.
++                    {t(`${roadCleanupReview.plan.afterIssues.length} validation issue${roadCleanupReview.plan.afterIssues.length === 1 ? '' : 's'} will remain after cleanup.`)}
+                   </div>
+                 )}
+                 <div className="grid grid-cols-2 gap-2">
+@@ -1016,7 +1014,7 @@ export default function StreetscapePanel() {
+                     onClick={() => setRoadCleanupReview(null)}
+                     type="button"
+                   >
+-                    Cancel
++                    {t('Cancel')}
+                   </button>
+                   <button
+                     className="rounded-md bg-sidebar-primary px-2 py-1.5 font-medium text-sidebar-primary-foreground text-xs disabled:cursor-not-allowed disabled:opacity-40"
+@@ -1025,7 +1023,7 @@ export default function StreetscapePanel() {
+                     onClick={applyReviewedRoadCleanup}
+                     type="button"
+                   >
+-                    Apply changes
++                    {t('Apply changes')}
+                   </button>
+                 </div>
+               </div>
+@@ -1039,7 +1037,7 @@ export default function StreetscapePanel() {
+                 }`}
+                 role="status"
+               >
+-                {roadExchangeStatus.message}
++                {t(roadExchangeStatus.message)}
+               </span>
+             )}
+           </div>
+@@ -1050,7 +1048,7 @@ export default function StreetscapePanel() {
+       {panelCategory === 'lighting' && (
+         <div className="grid grid-cols-2 gap-2">
+           <div className="col-span-2 pt-1 font-medium text-sidebar-foreground/55 text-xs uppercase tracking-wide">
+-            Roadway and area heads
++            {t('Roadway and area heads')}
+           </div>
+           <button
+             className={`group relative flex flex-col gap-2 rounded-xl border p-2 transition-all ${
+@@ -1065,7 +1063,7 @@ export default function StreetscapePanel() {
+               <StreetLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Street light{' '}
++              {t('Street light')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">{streetLightCount}</span>
+             </span>
+             {streetLightArmed && (
+@@ -1085,7 +1083,7 @@ export default function StreetscapePanel() {
+               <PostTopLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Post-top{' '}
++              {t('Post-top')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">{postTopLightCount}</span>
+             </span>
+             {postTopLightArmed && (
+@@ -1105,7 +1103,7 @@ export default function StreetscapePanel() {
+               <HeritageCrookLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Bishop's Crook{' '}
++              {t("Bishop's Crook")}{' '}
+               <span className="font-normal text-sidebar-foreground/45">
+                 {heritageCrookLightCount}
+               </span>
+@@ -1127,7 +1125,7 @@ export default function StreetscapePanel() {
+               <CobraHeadLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Cobra-head{' '}
++              {t('Cobra-head')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">{cobraHeadLightCount}</span>
+             </span>
+             {cobraHeadLightArmed && (
+@@ -1147,7 +1145,7 @@ export default function StreetscapePanel() {
+               <TwinArmMedianLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Twin-arm median{' '}
++              {t('Twin-arm median')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">
+                 {twinArmMedianLightCount}
+               </span>
+@@ -1169,7 +1167,7 @@ export default function StreetscapePanel() {
+               <MultiHeadAreaLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Area pole{' '}
++              {t('Area pole')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">
+                 {multiHeadAreaLightCount}
+               </span>
+@@ -1191,7 +1189,7 @@ export default function StreetscapePanel() {
+               <TrussRoadwayLightArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Truss roadway{' '}
++              {t('Truss roadway')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">
+                 {trussRoadwayLightCount}
+               </span>
+@@ -1209,7 +1207,7 @@ export default function StreetscapePanel() {
+               <Fragment key={variant.kind}>
+                 {showFamilyHeading && (
+                   <div className="col-span-2 pt-2 font-medium text-sidebar-foreground/55 text-xs uppercase tracking-wide">
+-                    {variant.family} styles
++                    {t(`${variant.family} styles`)}
+                   </div>
+                 )}
+                 <button
+@@ -1225,7 +1223,7 @@ export default function StreetscapePanel() {
+                     <CatalogLampArtwork label={variant.label} thumbnail={thumbnail} />
+                   </div>
+                   <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-                    {variant.label}{' '}
++                    {t(variant.label)}{' '}
+                     <span className="font-normal text-sidebar-foreground/45">
+                       {catalogLampCounts[variant.kind] ?? 0}
+                     </span>
+@@ -1243,7 +1241,7 @@ export default function StreetscapePanel() {
+       {panelCategory === 'utilities' && (
+         <div className="grid grid-cols-2 gap-2">
+           <div className="col-span-2 pt-1 font-medium text-sidebar-foreground/55 text-xs uppercase tracking-wide">
+-            Utility network
++            {t('Utility network')}
+           </div>
+           <button
+             className={`group relative flex flex-col gap-2 rounded-xl border p-2 text-left transition-all ${
+@@ -1258,7 +1256,7 @@ export default function StreetscapePanel() {
+               <UtilityPoleArtwork />
+             </div>
+             <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-              Utility pole{' '}
++              {t('Utility pole')}{' '}
+               <span className="font-normal text-sidebar-foreground/45">{utilityPoleCount}</span>
+             </span>
+             {utilityPoleArmed && (
+@@ -1273,7 +1271,7 @@ export default function StreetscapePanel() {
+               <Fragment key={variant.kind}>
+                 {showFamilyHeading ? (
+                   <div className="col-span-2 pt-2 font-medium text-sidebar-foreground/55 text-xs uppercase tracking-wide">
+-                    {variant.family}
++                    {t(variant.family)}
+                   </div>
+                 ) : null}
+                 <button
+@@ -1283,14 +1281,14 @@ export default function StreetscapePanel() {
+                       : 'border-sidebar-border hover:border-sidebar-ring/50 hover:bg-sidebar-accent/40'
+                   }`}
+                   onClick={() => activateStreetInfrastructureTool(variant.kind)}
+-                  title={variant.description}
++                  title={t(variant.description)}
+                   type="button"
+                 >
+                   <div className="transition-transform group-hover:scale-[1.02]">
+                     <StreetInfrastructureArtwork kind={variant.kind} label={variant.label} />
+                   </div>
+                   <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-                    {variant.label}{' '}
++                    {t(variant.label)}{' '}
+                     <span className="font-normal text-sidebar-foreground/45">
+                       {streetInfrastructureCounts[variant.kind] ?? 0}
+                     </span>
+@@ -1308,7 +1306,7 @@ export default function StreetscapePanel() {
+       {panelCategory === 'signs' && (
+         <div className="grid grid-cols-2 gap-2">
+           <div className="col-span-2 pt-1 font-medium text-sidebar-foreground/55 text-xs uppercase tracking-wide">
+-            Common signs
++            {t('Common signs')}
+           </div>
+           {ROAD_SIGN_CATALOG.map((sign) => {
+             const signArmed = roadSignArmed && roadSignId === sign.id
+@@ -1321,14 +1319,14 @@ export default function StreetscapePanel() {
+                 }`}
+                 key={sign.id}
+                 onClick={() => activateRoadSignTool(sign.id)}
+-                title={sign.description}
++                title={t(sign.description)}
+                 type="button"
+               >
+                 <div className="transition-transform group-hover:scale-[1.02]">
+                   <RoadSignArtwork signId={sign.id} />
+                 </div>
+                 <span className="flex items-center justify-between gap-1 pl-0.5 font-medium text-xs">
+-                  {sign.label}{' '}
++                  {t(sign.label)}{' '}
+                   <span className="font-normal text-sidebar-foreground/45">{roadSignCounts[sign.id] ?? 0}</span>
+                 </span>
+                 {signArmed && (

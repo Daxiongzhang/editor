@@ -65,6 +65,7 @@ import { Input } from './../../../../../components/ui/primitives/input'
 import { Switch } from './../../../../../components/ui/primitives/switch'
 import { cn } from './../../../../../lib/utils'
 import { deleteLevelWithFallbackSelection } from './../../../../../lib/level-selection'
+import { useDisplayText } from './../../../../../lib/display-text'
 import useEditor, { selectDefaultBuildingAndLevel } from './../../../../../store/use-editor'
 import useFloorplanMode from './../../../../../store/use-floorplan-mode'
 import { type SendToAppStep, useSendToApp } from './../../../../../store/use-send-to-app'
@@ -247,6 +248,7 @@ function SettingsSection({
   title: string
   tone?: 'default' | 'destructive'
 }) {
+  const t = useDisplayText()
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className="space-y-3 py-5 first:pt-0 last:pb-0">
@@ -258,9 +260,9 @@ function SettingsSection({
           )}
           id={headingId}
         >
-          {title}
+          {t(title)}
         </h3>
-        {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
+        {description ? <p className="text-muted-foreground text-xs">{t(description)}</p> : null}
       </div>
       {children}
     </section>
@@ -268,7 +270,12 @@ function SettingsSection({
 }
 
 function SettingsSubheading({ children }: { children: ReactNode }) {
-  return <h4 className="font-medium text-muted-foreground text-xs">{children}</h4>
+  const t = useDisplayText()
+  return (
+    <h4 className="font-medium text-muted-foreground text-xs">
+      {typeof children === 'string' ? t(children) : children}
+    </h4>
+  )
 }
 
 function SettingsSwitchRow({
@@ -282,14 +289,15 @@ function SettingsSwitchRow({
   label: string
   onCheckedChange: (checked: boolean) => void
 }) {
+  const t = useDisplayText()
   const id = useId()
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <div className="min-w-0 space-y-0.5">
         <label className="block font-medium text-sm" htmlFor={id}>
-          {label}
+          {t(label)}
         </label>
-        <p className="text-muted-foreground text-xs">{description}</p>
+        <p className="text-muted-foreground text-xs">{t(description)}</p>
       </div>
       <Switch checked={checked} id={id} onCheckedChange={onCheckedChange} />
     </div>
@@ -310,6 +318,7 @@ export interface SettingsPanelProps {
 }
 
 function FloorSettingsSection() {
+  const t = useDisplayText()
   const selectedBuildingId = useViewer((state) => state.selection.buildingId)
   const selectedLevelId = useViewer((state) => state.selection.levelId)
   const setSelection = useViewer((state) => state.setSelection)
@@ -359,11 +368,11 @@ function FloorSettingsSection() {
 
   return (
     <div className="space-y-3">
-      <label className="font-medium text-muted-foreground text-xs uppercase">Floors</label>
+      <label className="font-medium text-muted-foreground text-xs uppercase">{t('Floors')}</label>
       <div className="grid grid-cols-2 gap-2">
         <Button className="justify-start" onClick={addFloor} size="sm" type="button" variant="outline">
           <ArrowUp className="size-3.5" />
-          Add floor
+          {t('Add floor')}
         </Button>
         <Button
           className="justify-start"
@@ -373,13 +382,13 @@ function FloorSettingsSection() {
           variant="outline"
         >
           <ArrowDown className="size-3.5" />
-          Add basement
+          {t('Add basement')}
         </Button>
       </div>
 
       <div className="space-y-1 rounded-md border p-1">
         {levels.length === 0 ? (
-          <div className="px-2 py-2 text-muted-foreground text-xs">No floors yet</div>
+          <div className="px-2 py-2 text-muted-foreground text-xs">{t('No floors yet')}</div>
         ) : (
           levels.map((level) => {
             const isSelected = level.id === selectedLevelId
@@ -398,17 +407,17 @@ function FloorSettingsSection() {
                   type="button"
                 >
                   <Layers className="size-3.5 shrink-0" />
-                  <span className="truncate">{getLevelDisplayName(level)}</span>
+                  <span className="truncate">{t(getLevelDisplayName(level))}</span>
                   <span className="ml-auto shrink-0 text-muted-foreground text-xs">
                     {level.level === 0 ? '0' : level.level > 0 ? `+${level.level}` : level.level}
                   </span>
                 </button>
                 <button
-                  aria-label={`Remove ${getLevelDisplayName(level)}`}
+                  aria-label={`${t('Remove')} ${t(getLevelDisplayName(level))}`}
                   className="flex size-7 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
                   disabled={!canDelete}
                   onClick={() => deleteLevelWithFallbackSelection(level.id)}
-                  title={canDelete ? 'Remove floor' : 'The ground floor cannot be removed'}
+                  title={t(canDelete ? 'Remove floor' : 'The ground floor cannot be removed')}
                   type="button"
                 >
                   <Trash2 className="size-3.5" />
@@ -419,7 +428,7 @@ function FloorSettingsSection() {
         )}
       </div>
       <p className="text-muted-foreground text-xs">
-        Select a floor to make it active. The ground floor is always kept as the building datum.
+        {t('Select a floor to make it active. The ground floor is always kept as the building datum.')}
       </p>
     </div>
   )
@@ -432,6 +441,7 @@ export function SettingsPanel({
   projectVisibility,
   onVisibilityChange,
 }: SettingsPanelProps = {}) {
+  const t = useDisplayText()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const copyResetTimeoutRef = useRef<number | null>(null)
   const nodes = useScene((state) => state.nodes)
@@ -878,21 +888,21 @@ export function SettingsPanel({
               }}
             >
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-md border px-3 font-medium text-sm focus-visible:outline-2 focus-visible:outline-ring">
-                Export options
+                {t('Export options')}
                 <ChevronDown aria-hidden="true" className="size-4 group-open:rotate-180" />
               </summary>
               <div className="space-y-3 pt-3">
                 <div className="flex items-center justify-between gap-4 rounded-md border p-3">
                   <div className="min-w-0">
                     <label className="font-medium text-sm" htmlFor={visibleOnlySwitchId}>
-                      Visible nodes only
+                      {t('Visible nodes only')}
                     </label>
                     <div className="text-muted-foreground text-xs">
-                      Exclude hidden furniture and other hidden scene nodes
+                      {t('Exclude hidden furniture and other hidden scene nodes')}
                     </div>
                   </div>
                   <Switch
-                    aria-label="Export visible nodes only"
+                    aria-label={t('Export visible nodes only')}
                     checked={exportOnlyVisible}
                     id={visibleOnlySwitchId}
                     onCheckedChange={setExportOnlyVisible}
@@ -900,10 +910,9 @@ export function SettingsPanel({
                 </div>
 
                 <fieldset className="space-y-2 rounded-md border p-3">
-                  <legend className="px-1 font-medium text-sm">Include in file</legend>
+                  <legend className="px-1 font-medium text-sm">{t('Include in file')}</legend>
                   <p className="text-muted-foreground text-xs">
-                    Choose which procedural content is baked into model files. GLB and USDZ use the
-                    textured portable path; STL and OBJ remain geometry-only.
+                    {t('Choose which procedural content is baked into model files. GLB and USDZ use the textured portable path; STL and OBJ remain geometry-only.')}
                   </p>
                   {exportableNodeTypes.length > 0 ? (
                     <div className="space-y-2 pt-1">
@@ -938,14 +947,14 @@ export function SettingsPanel({
                     </p>
                   )}
                   <p className="text-muted-foreground text-xs">
-                    Viewer surroundings are excluded unless selected separately below.
+                    {t('Viewer surroundings are excluded unless selected separately below.')}
                   </p>
                 </fieldset>
                 {exportablePresentations.length > 0 ? (
                   <fieldset className="space-y-2 rounded-md border p-3">
-                    <legend className="px-1 font-medium text-sm">Viewer surroundings</legend>
+                    <legend className="px-1 font-medium text-sm">{t('Viewer surroundings')}</legend>
                     <p className="text-muted-foreground text-xs">
-                      Optional static surroundings are included only in GLB and USDZ.
+                      {t('Optional static surroundings are included only in GLB and USDZ.')}
                     </p>
                     <div className="space-y-2 pt-1">
                       {exportablePresentations.map((contribution, index) => {
@@ -991,7 +1000,7 @@ export function SettingsPanel({
                     variant="outline"
                   >
                     <Download aria-hidden="true" className="size-4" />
-                    {isActive ? `Exporting ${label}…` : `Export ${label}`}
+                    {isActive ? `${t('Exporting')} ${label}…` : `${t('Export')} ${label}`}
                   </Button>
                 )
               })}
@@ -1008,19 +1017,19 @@ export function SettingsPanel({
                 <Send aria-hidden="true" className="size-4" />
                 {sendToBlenderStep
                   ? SEND_TO_BLENDER_STEP_LABEL[sendToBlenderStep]
-                  : 'Send to Blender'}
+                  : t('Send to Blender')}
               </Button>
               <p className="text-muted-foreground text-xs">
-                Needs the{' '}
+                {t('Needs the')}{' '}
                 <a
                   className="underline underline-offset-2"
                   href={BLENDER_ADDON_URL}
                   rel="noreferrer"
                   target="_blank"
                 >
-                  Pascal add-on for Blender
+                  {t('Pascal add-on for Blender')}
                 </a>{' '}
-                running in an open Blender.
+                {t('running in an open Blender.')}
               </p>
             </div>
             {sendToBlenderMessage ? (
@@ -1061,7 +1070,7 @@ export function SettingsPanel({
             <div className="flex items-center justify-between">
               <SettingsSubheading>Floor plan</SettingsSubheading>
               <span className="text-muted-foreground text-xs">
-                {floorplanMode === 'default' ? 'Default mode' : 'Expert mode'}
+                {t(floorplanMode === 'default' ? 'Default mode' : 'Expert mode')}
               </span>
             </div>
             <div className="grid gap-2 @sm:grid-cols-2">
@@ -1073,7 +1082,7 @@ export function SettingsPanel({
                 variant="outline"
               >
                 <MapIcon className="size-4" />
-                Full floor plan
+                {t('Full floor plan')}
               </Button>
               <Button
                 aria-busy={activeFloorplanExport === 'structure'}
@@ -1083,7 +1092,7 @@ export function SettingsPanel({
                 variant="outline"
               >
                 <MapIcon className="size-4" />
-                Structure only
+                {t('Structure only')}
               </Button>
             </div>
             {activeFloorplanExport ? (
@@ -1130,7 +1139,7 @@ export function SettingsPanel({
               variant="outline"
             >
               <Save className="size-4" />
-              Save build
+              {t('Save build')}
             </Button>
             <Button
               className="w-full justify-start gap-2"
@@ -1138,7 +1147,7 @@ export function SettingsPanel({
               variant="outline"
             >
               <Upload className="size-4" />
-              Load build
+              {t('Load build')}
             </Button>
           </div>
 
@@ -1173,7 +1182,7 @@ export function SettingsPanel({
               <div className="grid gap-2 @sm:grid-cols-2">
                 <Button className="w-full justify-start gap-2" variant="outline">
                   <ListTree className="size-4" />
-                  Explore scene graph
+                  {t('Explore scene graph')}
                 </Button>
               </div>
             </DialogTrigger>
@@ -1206,7 +1215,7 @@ export function SettingsPanel({
               variant="destructive"
             >
               <Trash2 className="size-4" />
-              Clear and start new
+              {t('Clear and start new')}
             </Button>
           </div>
         </SettingsSection>

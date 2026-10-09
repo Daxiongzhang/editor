@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import { type LucideIcon, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { Fragment } from 'react'
+import { useDisplayText } from './../../../lib/display-text'
 import { cn } from './../../../lib/utils'
 import useEditor from './../../../store/use-editor'
 import { ActionButton } from './action-button'
@@ -51,6 +52,7 @@ const controls: ControlConfig[] = [
 ]
 
 export function ControlModes() {
+  const t = useDisplayText()
   const mode = useEditor((state) => state.mode)
   const phase = useEditor((state) => state.phase)
   const selectionTool = useEditor((state) => state.floorplanSelectionTool)
@@ -103,6 +105,7 @@ export function ControlModes() {
   return (
     <div className="flex items-center gap-1">
       {controls.map((c) => {
+        const label = t(c.label)
         const ModeIcon = c.icon
         const isImageMode = Boolean(c.imageSrc)
         const isActive = getIsActive(c.id)
@@ -121,7 +124,7 @@ export function ControlModes() {
               // A static hook for a host app that wants to point a first-run
               // tour at this button. Nothing here reads it.
               data-guide-target={c.id === 'select' ? 'mode-select' : undefined}
-              label={c.label}
+              label={label}
               onClick={() => handleClick(c.id)}
               shortcut={c.shortcut}
               size="icon"
@@ -129,7 +132,7 @@ export function ControlModes() {
             >
               {c.imageSrc ? (
                 <Image
-                  alt={c.label}
+                  alt={label}
                   className={cn(
                     'h-[28px] w-[28px] object-contain transition-[opacity,filter] duration-200',
                     isActive

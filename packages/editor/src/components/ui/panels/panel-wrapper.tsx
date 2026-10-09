@@ -33,6 +33,7 @@ import {
   toggleExtension,
 } from '../../../lib/inspector-card-mode'
 import { cn } from '../../../lib/utils'
+import { useDisplayText } from '../../../lib/display-text'
 import { PanelSection } from '../controls/panel-section'
 import { ErrorBoundary } from '../primitives/error-boundary'
 
@@ -109,6 +110,7 @@ export function PanelWrapper({
   className,
   width = 320, // default width
 }: PanelWrapperProps) {
+  const t = useDisplayText()
   const isMobile = useIsMobile()
   const contextFooter = useContext(InspectorFooterContext)
   const resolvedFooter = footer ?? contextFooter
@@ -338,7 +340,7 @@ export function PanelWrapper({
                 <span className="flex shrink-0 items-center justify-center">{icon}</span>
               ))}
             <h2 className="truncate font-semibold text-foreground text-sm tracking-tight">
-              {title}
+              {t(title)}
             </h2>
           </div>
 
@@ -364,7 +366,7 @@ export function PanelWrapper({
               const isActive = !collapsed && activeExtensionId === extension.id
               return (
                 <button
-                  aria-label={isActive ? `Close ${extension.title}` : `Open ${extension.title}`}
+                  aria-label={`${t(isActive ? 'Close' : 'Open')} ${t(extension.title)}`}
                   aria-pressed={isActive}
                   className={cn(
                     'flex h-7 w-7 items-center justify-center rounded-md transition-colors',
@@ -376,7 +378,7 @@ export function PanelWrapper({
                   onClick={() =>
                     applyMode(toggleExtension({ collapsed, activeExtensionId }, extension.id))
                   }
-                  title={extension.title}
+                  title={t(extension.title)}
                   type="button"
                 >
                   {renderExtensionIcon(extension.icon)}
@@ -385,7 +387,7 @@ export function PanelWrapper({
             })}
             <button
               aria-expanded={!collapsed}
-              aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
+              aria-label={t(collapsed ? 'Expand panel' : 'Collapse panel')}
               className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2C2C2E] text-muted-foreground transition-colors hover:bg-[#3e3e3e] hover:text-foreground"
               onClick={handleCardToggle}
               type="button"

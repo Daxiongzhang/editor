@@ -35,6 +35,7 @@ import {
   MODULAR_CABINET_ICON,
 } from '@/lib/build-palette'
 import { getActiveRoofFeatureId, ROOF_TYPE_OPTIONS } from '@/lib/build-tab-state'
+import { useI18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 const subscribeToClientMount = () => () => {}
@@ -46,6 +47,7 @@ const subscribeToClientMount = () => () => {}
  * material-paint panel.
  */
 export function BuildTab() {
+  const { t } = useI18n()
   const [mepOpen, setMepOpen] = useState(false)
   const activeTool = useEditor((s) => s.tool)
   const mode = useEditor((s) => s.mode)
@@ -142,6 +144,7 @@ export function BuildTab() {
         >
           {buildTypes.map((type) => {
             const active = isTypeActive(type)
+            const label = type.labelKey ? t(type.labelKey) : type.label
             return (
               <Tooltip key={type.id}>
                 <TooltipTrigger asChild>
@@ -160,7 +163,7 @@ export function BuildTab() {
                     type="button"
                   >
                     <Image
-                      alt={type.label}
+                      alt={label}
                       className="size-full object-contain transition-transform duration-200 group-hover:scale-110"
                       height={48}
                       src={type.iconSrc}
@@ -169,7 +172,7 @@ export function BuildTab() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="pointer-events-none" side="top">
-                  {type.label}
+                  {label}
                 </TooltipContent>
               </Tooltip>
             )
@@ -188,7 +191,9 @@ export function BuildTab() {
       ) : mode === 'build' && (activeTool === 'roof' || isRoofFeatureActive) ? (
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
           <div className="flex flex-col gap-2">
-            <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Roof type</div>
+            <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
+              {t('build.roofType')}
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
               {ROOF_TYPE_OPTIONS.map((roofType) => {
                 const active = activeTool === 'roof' && activeRoofType === roofType.value
@@ -209,7 +214,7 @@ export function BuildTab() {
                     onMouseEnter={() => triggerSFX('sfx:menu-hover')}
                     type="button"
                   >
-                    {roofType.label}
+                    {t(roofType.labelKey)}
                   </button>
                 )
               })}
@@ -226,14 +231,14 @@ export function BuildTab() {
           />
           {activeRoofType === 'conical' && (
             <p className="border-border/50 border-t px-0.5 pt-3 text-[11px] text-muted-foreground leading-relaxed">
-              Select a curved wall to match its radius and arc.
+              {t('roof.conicalHint')}
             </p>
           )}
 
           {roofFeatures.length > 0 ? (
             <div className="flex flex-col gap-2 border-border/50 border-t pt-3">
               <div className="px-0.5 font-medium text-muted-foreground text-xs">
-                Features & extensions
+                {t('build.roofFeatures')}
               </div>
               <TooltipProvider delayDuration={0} disableHoverableContent>
                 <div
@@ -282,7 +287,9 @@ export function BuildTab() {
         </div>
       ) : isKitchenActive ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Kitchen</div>
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
+            {t('build.kitchen')}
+          </div>
           <TooltipProvider delayDuration={0} disableHoverableContent>
             <div
               className="grid gap-1.5 px-0.5"
@@ -300,7 +307,7 @@ export function BuildTab() {
                     type="button"
                   >
                     <Image
-                      alt="Modular Cabinet"
+                      alt={t('build.modularCabinet')}
                       className="size-full object-contain transition-transform duration-200 group-hover:scale-110"
                       height={48}
                       src={MODULAR_CABINET_ICON}
@@ -309,7 +316,7 @@ export function BuildTab() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="pointer-events-none" side="top">
-                  Modular Cabinet
+                  {t('build.modularCabinet')}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -317,7 +324,9 @@ export function BuildTab() {
         </div>
       ) : isMepActive ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">MEP</div>
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
+            {t('build.mep')}
+          </div>
           <TooltipProvider delayDuration={0} disableHoverableContent>
             <div
               className="grid gap-1.5 px-0.5"
@@ -325,6 +334,7 @@ export function BuildTab() {
             >
               {MEP_ITEMS.map((item) => {
                 const active = isMepItemActive(item)
+                const label = item.labelKey ? t(item.labelKey) : item.label
                 return (
                   <Tooltip key={item.id}>
                     <TooltipTrigger asChild>
@@ -344,7 +354,7 @@ export function BuildTab() {
                         type="button"
                       >
                         <Image
-                          alt={item.label}
+                          alt={label}
                           className="size-full object-contain transition-transform duration-200 group-hover:scale-110"
                           height={48}
                           src={item.iconSrc}
@@ -353,7 +363,7 @@ export function BuildTab() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent className="pointer-events-none" side="top">
-                      {item.label}
+                      {label}
                     </TooltipContent>
                   </Tooltip>
                 )
@@ -387,7 +397,7 @@ export function BuildTab() {
 
           {liquidLineContext ? (
             <div className="flex flex-col gap-1.5">
-              <span className="text-muted-foreground text-xs">Liquid Line</span>
+              <span className="text-muted-foreground text-xs">{t('build.liquidLine')}</span>
               <button
                 className={cn(
                   'flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200',
@@ -400,13 +410,13 @@ export function BuildTab() {
                 onMouseEnter={() => triggerSFX('sfx:menu-hover')}
                 type="button"
               >
-                <span>Follow lineset</span>
-                <span className="text-muted-foreground text-xs">{follow ? 'On' : 'Off'}</span>
+                <span>{t('build.followLineset')}</span>
+                <span className="text-muted-foreground text-xs">
+                  {follow ? t('common.on') : t('common.off')}
+                </span>
               </button>
               <span className="px-1 text-[11px] text-muted-foreground">
-                {follow
-                  ? 'Click a lineset to lay the line beside it.'
-                  : 'Trace a line alongside an existing lineset (F).'}
+                {follow ? t('build.followLinesetOn') : t('build.followLinesetOff')}
               </span>
             </div>
           ) : null}

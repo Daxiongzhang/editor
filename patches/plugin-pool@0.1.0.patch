@@ -1,0 +1,144 @@
+diff --git a/src/editor/panel.tsx b/src/editor/panel.tsx
+--- a/src/editor/panel.tsx
++++ b/src/editor/panel.tsx
+@@ -1,7 +1,7 @@
+ 'use client'
+ 
+ import { useScene } from '@pascal-app/core'
+-import { SegmentedControl, SliderControl, ToggleControl, useEditor } from '@pascal-app/editor'
++import { SegmentedControl, SliderControl, ToggleControl, useDisplayText, useEditor } from '@pascal-app/editor'
+ import { ArrowLeft } from 'lucide-react'
+ import { type ReactNode, useEffect, useRef, useState } from 'react'
+ import { useShallow } from 'zustand/react/shallow'
+@@ -52,6 +52,7 @@
+ ])
+ 
+ export default function PoolPanel() {
++  const t = useDisplayText()
+   const [menu, setMenu] = useState<'root' | 'pool-types' | 'stair-types' | 'water-features'>('root')
+   const selectedIds = useViewer((state) => state.selection.selectedIds)
+   const shape = usePoolStore((state) => state.shape)
+@@ -104,24 +105,24 @@
+       {menu === 'root' ? (
+         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4">
+           <section className="flex flex-col gap-2">
+-            <h2 className="font-semibold text-base">Swimming pool</h2>
+-            <p className="text-xs text-sidebar-foreground/60">Build the pool, then add its systems and details.</p>
++            <h2 className="font-semibold text-base">{t('Swimming pool')}</h2>
++            <p className="text-xs text-sidebar-foreground/60">{t('Build the pool, then add its systems and details.')}</p>
+             <div className="grid grid-cols-2 gap-2">
+               <CatalogCard className="col-span-2" count={poolCount} image={THUMBNAILS.pool} label="Swimming pool" onClick={() => { setMenu('pool-types'); activate() }} wide />
+               <CatalogCard count={stairCount} image={THUMBNAILS.stairs} label="Pool stairs" onClick={() => setMenu('stair-types')} />
+             </div>
+           </section>
+           <section className="flex flex-col gap-2 border-t border-sidebar-border pt-4">
+-            <h3 className="font-medium text-sm">Water features</h3>
+-            <p className="text-xs text-sidebar-foreground/60">Add movement and visual interest to the pool.</p>
++            <h3 className="font-medium text-sm">{t('Water features')}</h3>
++            <p className="text-xs text-sidebar-foreground/60">{t('Add movement and visual interest to the pool.')}</p>
+             <div className="grid grid-cols-2 gap-2">
+               <CatalogCard count={waterfallCount} image={THUMBNAILS.waterfall} label="Waterfall" onClick={() => { setMenu('water-features'); activateTool('pool:waterfall') }} />
+               <CatalogCard count={spilloverCount} image={THUMBNAILS.spillover} label="Pool spillover" onClick={() => { setMenu('water-features'); activateTool('pool:spillover') }} />
+             </div>
+           </section>
+           <section className="flex flex-col gap-2 border-t border-sidebar-border pt-4">
+-            <h3 className="font-medium text-sm">Circulation equipment</h3>
+-            <p className="text-xs text-sidebar-foreground/60">Place the equipment that keeps the water clean and comfortable.</p>
++            <h3 className="font-medium text-sm">{t('Circulation equipment')}</h3>
++            <p className="text-xs text-sidebar-foreground/60">{t('Place the equipment that keeps the water clean and comfortable.')}</p>
+             <div className="grid grid-cols-2 gap-2">
+               <CatalogCard count={pumpCount} image={THUMBNAILS.pump} label="Pool pump" onClick={() => activateTool('pool:pump')} />
+               <CatalogCard count={filterCount} image={THUMBNAILS.filter} label="Pool filter" onClick={() => activateTool('pool:filter')} />
+@@ -129,8 +130,8 @@
+             </div>
+           </section>
+           <section className="flex flex-col gap-2 border-t border-sidebar-border pt-4">
+-            <h3 className="font-medium text-sm">Pool fittings</h3>
+-            <p className="text-xs text-sidebar-foreground/60">Connect the pool to its suction, drain, and return lines.</p>
++            <h3 className="font-medium text-sm">{t('Pool fittings')}</h3>
++            <p className="text-xs text-sidebar-foreground/60">{t('Connect the pool to its suction, drain, and return lines.')}</p>
+             <div className="grid grid-cols-2 gap-2">
+               <CatalogCard count={skimmerCount} image={THUMBNAILS.skimmer} label="Pool skimmer" onClick={() => activateTool('pool:skimmer')} />
+               <CatalogCard count={inletCount} image={THUMBNAILS.inlet} label="Pool return inlet" onClick={() => activateTool('pool:inlet')} />
+@@ -184,6 +185,7 @@
+   onBack: () => void
+   children: ReactNode
+ }) {
++  const t = useDisplayText()
+   const heading = useRef<HTMLHeadingElement>(null)
+ 
+   useEffect(() => {
+@@ -194,22 +196,22 @@
+     <div className="flex h-full min-h-0 flex-col overflow-hidden">
+       <header className="flex shrink-0 flex-col gap-3 border-b border-sidebar-border/70 px-3 pb-3 pt-2">
+         <button
+-          aria-label="Back to pool catalog"
++          aria-label={t('Back to pool catalog')}
+           className="-ml-1.5 flex min-h-8 self-start items-center gap-1.5 rounded-lg px-1.5 text-sidebar-foreground/60 text-xs hover:bg-sidebar-accent/50 hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-ring"
+           onClick={onBack}
+           type="button"
+         >
+           <ArrowLeft aria-hidden size={14} />
+-          Pool catalog
++          {t('Pool catalog')}
+         </button>
+         <div className="flex items-center justify-between gap-3">
+           <div className="min-w-0">
+             <h2 ref={heading} tabIndex={-1} className="rounded font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ring">
+-              {title}
++              {t(title)}
+             </h2>
+-            <p className="mt-0.5 text-xs leading-relaxed text-sidebar-foreground/60">{description}</p>
++            <p className="mt-0.5 text-xs leading-relaxed text-sidebar-foreground/60">{t(description)}</p>
+           </div>
+-          <span className="shrink-0 text-sidebar-foreground/60 text-xs">{count} placed</span>
++          <span className="shrink-0 text-sidebar-foreground/60 text-xs">{count} {t('placed')}</span>
+         </div>
+       </header>
+       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-3">
+@@ -220,6 +222,7 @@
+ }
+ 
+ function PresetGrid({ selected, onPick }: { selected: PoolShape; onPick: (shape: PoolShape) => void }) {
++  const t = useDisplayText()
+   return <div className="grid grid-cols-2 gap-2">{POOL_SHAPE_OPTIONS.map((option) => <button
+     aria-pressed={selected === option.value}
+     className={`group min-w-0 overflow-hidden rounded-xl border bg-sidebar-accent/20 text-left ${selected === option.value ? 'border-primary ring-1 ring-primary/30' : 'border-sidebar-border hover:border-primary'}`}
+@@ -230,11 +233,12 @@
+     <div className="overflow-hidden">
+       <img alt="" className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]" src={POOL_SHAPE_THUMBNAILS[option.value]} />
+     </div>
+-    <span className="block truncate px-2 py-2 font-medium text-xs">{option.label}</span>
++    <span className="block truncate px-2 py-2 font-medium text-xs">{t(option.label)}</span>
+   </button>)}</div>
+ }
+ 
+ function StairPresetGrid({ selected, onPick }: { selected: PoolStairVariant; onPick: (variant: PoolStairVariant) => void }) {
++  const t = useDisplayText()
+   return <div className="grid grid-cols-2 gap-2">{POOL_STAIR_VARIANTS.map((variant) => {
+     const preset = POOL_STAIR_CATALOG[variant]
+     return <button
+@@ -247,7 +251,7 @@
+       <div className="overflow-hidden">
+         <img alt="" className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]" src={POOL_STAIR_THUMBNAILS[variant]} />
+       </div>
+-      <span className="block truncate px-2 py-2 font-medium text-xs">{preset.label}</span>
++      <span className="block truncate px-2 py-2 font-medium text-xs">{t(preset.label)}</span>
+     </button>
+   })}</div>
+ }
+@@ -260,12 +264,13 @@
+   onClick: () => void
+   wide?: boolean
+ }) {
++  const t = useDisplayText()
+   return <button className={`group min-w-0 overflow-hidden rounded-xl border border-sidebar-border bg-sidebar-accent/20 text-left hover:border-primary ${className}`} onClick={onClick} type="button">
+     <div className="overflow-hidden">
+       <img alt="" className={`${wide ? 'aspect-[16/9]' : 'aspect-square'} w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]`} src={image} />
+     </div>
+       <span className="flex min-w-0 items-center justify-between gap-2 px-2 py-2">
+-        <span className="truncate font-medium text-xs">{label}</span>
++        <span className="truncate font-medium text-xs">{t(label)}</span>
+         {count !== undefined && <span className="shrink-0 text-sidebar-foreground/50 text-[11px]">{count}</span>}
+       </span>
+   </button>

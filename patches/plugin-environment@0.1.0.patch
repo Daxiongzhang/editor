@@ -1,0 +1,1890 @@
+diff --git a/src/atmosphere/controls.tsx b/src/atmosphere/controls.tsx
+index afee497..831a453 100644
+--- a/src/atmosphere/controls.tsx
++++ b/src/atmosphere/controls.tsx
+@@ -16,6 +16,7 @@ import {
+   Sun,
+   type LucideIcon,
+ } from 'lucide-react'
++import { useDisplayText } from '@pascal-app/editor'
+ import {
+   type KeyboardEvent,
+   type ReactNode,
+@@ -56,7 +57,7 @@ const META_CLASS = 'text-[11px] leading-relaxed text-sidebar-foreground/60'
+ const WEATHER_PRESETS = [
+   {
+     id: 'clear',
+-    label: 'Clear',
++    label: 'Clear weather',
+     settings: { rain: 0, snow: 0, wind: 0.35, storm: false, thunderAudio: false },
+   },
+   {
+@@ -88,7 +89,7 @@ const PRECIPITATION_LEVELS = [
+ const WIND_LEVELS = [
+   { label: 'Calm', value: 0, max: 0 },
+   { label: 'Breeze', value: 0.35, max: 0.6 },
+-  { label: 'Strong', value: 0.85, max: 1 },
++  { label: 'Strong wind', value: 0.85, max: 1 },
+ ] as const
+ type AtmosphereTab = 'sky' | 'weather' | 'advanced'
+ 
+@@ -120,12 +121,13 @@ function WeatherChoices({
+   choices: readonly { label: string; value: number; max: number }[]
+   onChange: (value: number) => void
+ }) {
++  const t = useDisplayText()
+   // Labels describe bands; exact values stay untouched until a choice is clicked.
+   const selected = choices.find((choice) => value <= choice.max)
+ 
+   return (
+     <fieldset className="min-w-0" onKeyDown={(event) => event.stopPropagation()}>
+-      <legend className="mb-2 text-xs text-sidebar-foreground/80">{label}</legend>
++      <legend className="mb-2 text-xs text-sidebar-foreground/80">{t(label)}</legend>
+       <div className="grid min-w-0 grid-cols-3 gap-1">
+         {choices.map((choice) => (
+           <button
+@@ -139,7 +141,7 @@ function WeatherChoices({
+             onClick={() => onChange(choice.value)}
+             type="button"
+           >
+-            {choice.label}
++            {t(choice.label)}
+           </button>
+         ))}
+       </div>
+@@ -162,6 +164,7 @@ function AdvancedDisclosure({
+   id,
+   title,
+ }: AdvancedDisclosureProps) {
++  const t = useDisplayText()
+   return (
+     <section aria-labelledby={id} className="min-w-0">
+       <details className="group/disclosure min-w-0 rounded-lg border border-sidebar-border bg-sidebar/40 open:bg-sidebar-accent/20">
+@@ -174,10 +177,10 @@ function AdvancedDisclosure({
+           />
+           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+             <span id={id} className="text-xs font-medium text-sidebar-foreground">
+-              {title}
++              {t(title)}
+             </span>
+             <span className="text-[11px] leading-tight text-sidebar-foreground/60">
+-              {description}
++              {t(description)}
+             </span>
+           </span>
+           <ChevronRight
+@@ -196,6 +199,7 @@ function AdvancedDisclosure({
+ }
+ 
+ export default function AtmosphereControls() {
++  const t = useDisplayText()
+   const settings = useEnvironmentStore((state) => state.skySettings)
+   const enabled = useEnvironmentStore((state) => state.skyEnabled)
+   const playing = useEnvironmentStore((state) => state.skyPlaying)
+@@ -299,7 +303,7 @@ export default function AtmosphereControls() {
+   return (
+     <div className="flex min-w-0 flex-col gap-4">
+       <div
+-        aria-label="Atmosphere settings"
++        aria-label={t('Atmosphere settings')}
+         aria-orientation="horizontal"
+         className="grid min-w-0 grid-cols-3 gap-1.5"
+         role="tablist"
+@@ -332,7 +336,7 @@ export default function AtmosphereControls() {
+               type="button"
+             >
+               <Icon aria-hidden size={14} strokeWidth={1.8} />
+-              <span>{tab.label}</span>
++              <span>{t(tab.label)}</span>
+             </button>
+           )
+         })}
+@@ -350,17 +354,17 @@ export default function AtmosphereControls() {
+           aria-labelledby={`${controlId}-status-heading`}
+         >
+           <h2 id={`${controlId}-status-heading`} className="sr-only">
+-            Atmosphere status
++            {t('Atmosphere status')}
+           </h2>
+           <label className="flex min-h-12 min-w-0 items-center justify-between gap-3 rounded-xl border border-sidebar-border bg-muted/40 px-3 py-2 text-xs">
+             <span className="min-w-0">
+-              <span className="block font-medium">Environment sky</span>
++              <span className="block font-medium">{t('Environment sky')}</span>
+               <span
+                 id={`${controlId}-sky-status`}
+                 className="block text-[11px] text-sidebar-foreground/60"
+                 role="status"
+               >
+-                {atmosphereStatus}
++                {t(atmosphereStatus)}
+               </span>
+             </span>
+             <input
+@@ -384,7 +388,7 @@ export default function AtmosphereControls() {
+           className="flex min-w-0 flex-col gap-4 disabled:opacity-50"
+           disabled={!skyAvailable}
+         >
+-          <legend className="sr-only">Sky controls</legend>
++          <legend className="sr-only">{t('Sky controls')}</legend>
+           <section className={SECTION_CLASS} aria-labelledby={`${controlId}-sun-heading`}>
+             <div className="flex min-w-0 items-center justify-between gap-3">
+               <div className="min-w-0">
+@@ -393,7 +397,7 @@ export default function AtmosphereControls() {
+                   className="flex items-center gap-1.5 text-xs font-semibold"
+                 >
+                   <Sun aria-hidden size={14} strokeWidth={1.8} />
+-                  Sun &amp; time
++                  {t('Sun & time')}
+                 </h3>
+                 {settings.sunMode === 'manual' ? (
+                   <p className="mt-0.5 font-mono text-sm tabular-nums text-sidebar-foreground/70">
+@@ -411,12 +415,12 @@ export default function AtmosphereControls() {
+                   type="button"
+                 >
+                   {playing ? <Pause size={14} aria-hidden /> : <Play size={14} aria-hidden />}
+-                  {playing ? 'Pause' : 'Play day'}
++                  {t(playing ? 'Pause' : 'Play day')}
+                 </button>
+               ) : null}
+             </div>
+             <label className="flex min-w-0 flex-col gap-2 text-xs">
+-              <span className="font-medium">Sky mood</span>
++              <span className="font-medium">{t('Sky mood')}</span>
+               <select
+                 className={SELECT_CLASS}
+                 value={skyPresetId}
+@@ -428,11 +432,11 @@ export default function AtmosphereControls() {
+                 }}
+               >
+                 <option value="" disabled>
+-                  Custom sky
++                  {t('Custom sky')}
+                 </option>
+                 {SKY_PRESETS.map((preset) => (
+                   <option key={preset.id} value={preset.id}>
+-                    {preset.label}
++                    {t(preset.label)}
+                   </option>
+                 ))}
+               </select>
+@@ -446,13 +450,12 @@ export default function AtmosphereControls() {
+                 value={settings.timeOfDay}
+               />
+             ) : (
+-              <p className={META_CLASS}>Manual sun angles are available in Advanced.</p>
++              <p className={META_CLASS}>{t('Manual sun angles are available in Advanced.')}</p>
+             )}
+             <p id={`${controlId}-playback-hint`} className={META_CLASS}>
+-              Artistic 24-hour orbit; playback takes two minutes. It is not a geolocated solar
+-              study.
++              {t('Artistic 24-hour orbit; playback takes two minutes. It is not a geolocated solar study.')}
+               {!enabled && precipitationActive
+-                ? ' Enable the environment sky to use day playback.'
++                ? ` ${t('Enable the environment sky to use day playback.')}`
+                 : ''}
+             </p>
+           </section>
+@@ -475,10 +478,10 @@ export default function AtmosphereControls() {
+           <div className="flex min-w-0 items-start justify-between gap-2">
+             <div className="min-w-0">
+               <h2 id={`${controlId}-weather-heading`} className="text-xs font-semibold">
+-                Weather
++                {t('Weather')}
+               </h2>
+               <p className="mt-0.5 text-[11px] text-sidebar-foreground/60" aria-live="polite">
+-                {weatherStateLabel}
++                {t(weatherStateLabel)}
+               </p>
+             </div>
+             <button
+@@ -486,12 +489,12 @@ export default function AtmosphereControls() {
+               onClick={() => applyWeatherPreset(WEATHER_PRESETS[0])}
+               type="button"
+             >
+-              <RotateCcw size={13} aria-hidden /> Reset
++                <RotateCcw size={13} aria-hidden /> {t('Reset')}
+             </button>
+           </div>
+ 
+           <fieldset className="min-w-0">
+-            <legend className="mb-2 text-xs text-sidebar-foreground/80">Weather type</legend>
++            <legend className="mb-2 text-xs text-sidebar-foreground/80">{t('Weather type')}</legend>
+             <div className="grid min-w-0 grid-cols-2 gap-2">
+               {WEATHER_PRESETS.map((preset) => {
+                 const Icon = WEATHER_PRESET_ICONS[preset.id]
+@@ -512,21 +515,21 @@ export default function AtmosphereControls() {
+                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/50">
+                       <Icon aria-hidden size={16} strokeWidth={1.8} />
+                     </span>
+-                    <span>{preset.label}</span>
++                    <span>{t(preset.label)}</span>
+                   </button>
+                 )
+               })}
+             </div>
+             {mixedWeather ? (
+               <p className={`mt-2 ${META_CLASS}`}>
+-                Adjust the rain and snow amounts separately in Fine-tune.
++                {t('Adjust the rain and snow amounts separately in Fine-tune.')}
+               </p>
+             ) : null}
+           </fieldset>
+           {!mixedWeather && weather.rain > 0 ? (
+             <WeatherChoices
+               choices={PRECIPITATION_LEVELS}
+-              label="Rain strength"
++              label={t('Rain strength')}
+               onChange={(rain) => setWeather({ rain })}
+               value={weather.rain}
+             />
+@@ -534,14 +537,14 @@ export default function AtmosphereControls() {
+           {!mixedWeather && weather.snow > 0 ? (
+             <WeatherChoices
+               choices={PRECIPITATION_LEVELS}
+-              label="Snow strength"
++              label={t('Snow strength')}
+               onChange={(snow) => setWeather({ snow })}
+               value={weather.snow}
+             />
+           ) : null}
+           <WeatherChoices
+             choices={WIND_LEVELS}
+-            label="Wind"
++            label={t('Wind')}
+             onChange={(wind) => setWeather({ wind })}
+             value={weather.wind}
+           />
+@@ -549,7 +552,7 @@ export default function AtmosphereControls() {
+           {weather.storm ? (
+             <div className="flex min-w-0 flex-col gap-1">
+               <label className="flex min-h-9 min-w-0 items-center justify-between gap-3 text-xs">
+-                <span>Thunder sound</span>
++                <span>{t('Thunder sound')}</span>
+                 <input
+                   aria-describedby={`${controlId}-thunder-hint`}
+                   checked={weather.thunderAudio && thunderConsented}
+@@ -590,10 +593,10 @@ export default function AtmosphereControls() {
+             description="Exact amounts and mixed weather."
+             icon={SlidersHorizontal}
+             id={`${controlId}-weather-fine-tune-heading`}
+-            title="Fine-tune"
++            title={t('Fine-tune')}
+           >
+             <ParameterRange
+-              label="Rain intensity"
++              label={t('Rain intensity')}
+               max={100}
+               min={0}
+               onChange={(value) => {
+@@ -609,7 +612,7 @@ export default function AtmosphereControls() {
+               value={weather.rain * 100}
+             />
+             <ParameterRange
+-              label="Snow intensity"
++              label={t('Snow intensity')}
+               max={100}
+               min={0}
+               onChange={(value) => {
+@@ -625,7 +628,7 @@ export default function AtmosphereControls() {
+               value={weather.snow * 100}
+             />
+             <ParameterRange
+-              label="Wind"
++              label={t('Wind')}
+               max={100}
+               min={0}
+               onChange={(value) => setWeather({ wind: value / 100 })}
+@@ -635,9 +638,9 @@ export default function AtmosphereControls() {
+ 
+             <label className="flex min-h-9 min-w-0 items-center justify-between gap-3 text-xs">
+               <span className="min-w-0">
+-                <span className="block">Storm lightning</span>
++                <span className="block">{t('Storm lightning')}</span>
+                 <span className="block text-[11px] text-sidebar-foreground/60">
+-                  Adds rain when needed
++                  {t('Adds rain when needed')}
+                 </span>
+               </span>
+               <input
+@@ -656,10 +659,9 @@ export default function AtmosphereControls() {
+               />
+             </label>
+ 
+-            <p className={META_CLASS}>Cloud cover is in Advanced → Clouds.</p>
++            <p className={META_CLASS}>{t('Cloud cover is in Advanced → Clouds.')}</p>
+             <p className={META_CLASS}>
+-              Rain thickens and darkens the base clouds; snow cools the sky. Rain wets surfaces;
+-              snow covers ground and roof-facing surfaces. Indoor shelter is not detected.
++              {t('Rain thickens and darkens the base clouds; snow cools the sky. Rain wets surfaces; snow covers ground and roof-facing surfaces. Indoor shelter is not detected.')}
+             </p>
+           </AdvancedDisclosure>
+           {reducedMotion ? (
+@@ -678,7 +680,7 @@ export default function AtmosphereControls() {
+         id={`${controlId}-advanced-panel`}
+         role="tabpanel"
+       >
+-        <h2 className="sr-only">Advanced sky controls</h2>
++            <h2 className="sr-only">{t('Advanced sky controls')}</h2>
+         {!skyAvailable ? (
+           <p className={META_CLASS} role="status">
+             Enable the environment sky or precipitation to edit advanced sky controls.
+@@ -688,7 +690,7 @@ export default function AtmosphereControls() {
+           className="flex min-w-0 flex-col gap-2 disabled:opacity-50"
+           disabled={!skyAvailable}
+         >
+-          <legend className="sr-only">Advanced sky controls</legend>
++          <legend className="sr-only">{t('Advanced sky controls')}</legend>
+           <AdvancedDisclosure
+             description="Aim the sun by time or manual angles."
+             icon={Sun}
+@@ -696,7 +698,7 @@ export default function AtmosphereControls() {
+             title="Sun direction"
+           >
+             <label className="flex min-w-0 flex-col gap-2 text-xs">
+-              <span>Sun control</span>
++              <span>{t('Sun control')}</span>
+               <select
+                 className={SELECT_CLASS}
+                 value={settings.sunMode}
+@@ -713,13 +715,13 @@ export default function AtmosphereControls() {
+                   }
+                 }}
+               >
+-                <option value="time">Time of day</option>
+-                <option value="manual">Manual angles</option>
++                <option value="time">{t('Time of day')}</option>
++                <option value="manual">{t('Manual angles')}</option>
+               </select>
+             </label>
+             {settings.sunMode === 'time' ? (
+               <ParameterRange
+-                label="North offset"
++                label={t('North offset')}
+                 max={359}
+                 min={0}
+                 onChange={(northOffset) => setSettings({ northOffset })}
+@@ -730,7 +732,7 @@ export default function AtmosphereControls() {
+             ) : (
+               <>
+                 <ParameterRange
+-                  label="Sun elevation"
++                  label={t('Sun elevation')}
+                   max={90}
+                   min={-90}
+                   onChange={(sunElevation) => setSettings({ sunElevation })}
+@@ -740,7 +742,7 @@ export default function AtmosphereControls() {
+                   value={settings.sunElevation}
+                 />
+                 <ParameterRange
+-                  label="Sun azimuth"
++                  label={t('Sun azimuth')}
+                   max={359}
+                   min={0}
+                   onChange={(sunAzimuth) => setSettings({ sunAzimuth })}
+@@ -748,7 +750,7 @@ export default function AtmosphereControls() {
+                   unit="°"
+                   value={settings.sunAzimuth}
+                 />
+-                <p className={META_CLASS}>0° north · 90° east · 180° south · 270° west.</p>
++                <p className={META_CLASS}>{t('0° north · 90° east · 180° south · 270° west.')}</p>
+               </>
+             )}
+           </AdvancedDisclosure>
+@@ -760,7 +762,7 @@ export default function AtmosphereControls() {
+             title="Light & visibility"
+           >
+             <ParameterRange
+-              label="Haze"
++              label={t('Haze')}
+               max={10}
+               min={1}
+               onChange={(turbidity) => setSettings({ turbidity })}
+@@ -770,7 +772,7 @@ export default function AtmosphereControls() {
+               value={settings.turbidity}
+             />
+             <ParameterRange
+-              label="Fog starts"
++              label={t('Fog starts')}
+               max={2000}
+               min={0}
+               onChange={(fogStart) => setSettings({ fogStart })}
+@@ -779,7 +781,7 @@ export default function AtmosphereControls() {
+               value={settings.fogStart}
+             />
+             <ParameterRange
+-              label="Fog distance"
++              label={t('Fog distance')}
+               max={5000}
+               min={settings.fogStart + 20}
+               onChange={(fogEnd) => setSettings({ fogEnd })}
+@@ -788,7 +790,7 @@ export default function AtmosphereControls() {
+               value={settings.fogEnd}
+             />
+             <ParameterRange
+-              label="Exposure"
++              label={t('Exposure')}
+               max={3}
+               min={-3}
+               onChange={(exposureCompensation) => setSettings({ exposureCompensation })}
+@@ -806,7 +808,7 @@ export default function AtmosphereControls() {
+             title="Clouds"
+           >
+             <ParameterRange
+-              label="Base cloud cover"
++              label={t('Base cloud cover')}
+               max={100}
+               min={0}
+               onChange={(value) => setSettings({ cloudCoverage: value / 100 })}
+@@ -814,7 +816,7 @@ export default function AtmosphereControls() {
+               value={settings.cloudCoverage * 100}
+             />
+             <label className="flex min-h-9 min-w-0 items-center justify-between gap-3 text-xs">
+-              <span>Animate clouds</span>
++              <span>{t('Animate clouds')}</span>
+               <input
+                 checked={motion}
+                 className="h-4 w-4 shrink-0 accent-primary"
+@@ -823,7 +825,7 @@ export default function AtmosphereControls() {
+               />
+             </label>
+             <ParameterRange
+-              label="Cloud scale"
++              label={t('Cloud scale')}
+               max={4}
+               min={0.25}
+               onChange={(cloudScale) => setSettings({ cloudScale })}
+@@ -833,7 +835,7 @@ export default function AtmosphereControls() {
+               value={settings.cloudScale}
+             />
+             <ParameterRange
+-              label="Cloud softness"
++              label={t('Cloud softness')}
+               max={40}
+               min={2}
+               onChange={(value) => setSettings({ cloudSoftness: value / 100 })}
+@@ -841,7 +843,7 @@ export default function AtmosphereControls() {
+               value={settings.cloudSoftness * 100}
+             />
+             <ParameterRange
+-              label="Cloud drift"
++              label={t('Cloud drift')}
+               max={40}
+               min={0}
+               onChange={(value) => setSettings({ cloudSpeed: value / 1000 })}
+@@ -858,7 +860,7 @@ export default function AtmosphereControls() {
+             title="Sky model"
+           >
+             <label className="flex min-w-0 flex-col gap-2 text-xs">
+-              <span>Sky model</span>
++              <span>{t('Sky model')}</span>
+               <select
+                 className={SELECT_CLASS}
+                 value={settings.provider}
+@@ -866,8 +868,8 @@ export default function AtmosphereControls() {
+                   setSettings({ provider: event.target.value as SkySettings['provider'] })
+                 }
+               >
+-                <option value="procedural">Atmosphere · Rayleigh + Mie</option>
+-                <option value="gradient">Gradient · low cost</option>
++                <option value="procedural">{t('Atmosphere · Rayleigh + Mie')}</option>
++                <option value="gradient">{t('Gradient · low cost')}</option>
+               </select>
+             </label>
+             <details className="group/physical min-w-0 rounded-md border border-sidebar-border bg-sidebar/40">
+@@ -880,10 +882,10 @@ export default function AtmosphereControls() {
+                 />
+                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                   <span className="text-[11px] font-medium text-sidebar-foreground/80">
+-                    Physical scattering
++                    {t('Physical scattering')}
+                   </span>
+                   <span className="text-[10px] leading-tight text-sidebar-foreground/55">
+-                    Specialist tuning; defaults usually suffice.
++                    {t('Specialist tuning; defaults usually suffice.')}
+                   </span>
+                 </span>
+                 <ChevronRight
+@@ -895,7 +897,7 @@ export default function AtmosphereControls() {
+               </summary>
+               <div className="flex min-w-0 flex-col gap-3 border-t border-sidebar-border px-2.5 py-3">
+                 <ParameterRange
+-                  label="Rayleigh scattering"
++                  label={t('Rayleigh scattering')}
+                   max={2}
+                   min={0}
+                   onChange={(rayleigh) => setSettings({ rayleigh })}
+@@ -905,7 +907,7 @@ export default function AtmosphereControls() {
+                   value={settings.rayleigh}
+                 />
+                 <ParameterRange
+-                  label="Mie scattering"
++                  label={t('Mie scattering')}
+                   max={0.02}
+                   min={0}
+                   onChange={(mie) => setSettings({ mie })}
+@@ -915,7 +917,7 @@ export default function AtmosphereControls() {
+                   value={settings.mie}
+                 />
+                 <ParameterRange
+-                  label="Mie anisotropy"
++                  label={t('Mie anisotropy')}
+                   max={0.9}
+                   min={0}
+                   onChange={(mieG) => setSettings({ mieG })}
+@@ -925,7 +927,7 @@ export default function AtmosphereControls() {
+                   value={settings.mieG}
+                 />
+                 <ParameterRange
+-                  label="Sun angular radius"
++                  label={t('Sun angular radius')}
+                   max={(0.03 * 180) / Math.PI}
+                   min={(0.00465 * 180) / Math.PI}
+                   onChange={(value) => setSettings({ sunRadius: (value * Math.PI) / 180 })}
+@@ -935,7 +937,7 @@ export default function AtmosphereControls() {
+                   value={(settings.sunRadius * 180) / Math.PI}
+                 />
+                 <ParameterRange
+-                  label="Sun radiance"
++                  label={t('Sun radiance')}
+                   max={100}
+                   min={1}
+                   onChange={(sunRadiance) => setSettings({ sunRadiance })}
+@@ -946,14 +948,14 @@ export default function AtmosphereControls() {
+               </div>
+             </details>
+             <ParameterRange
+-              label="Moon phase"
++              label={t('Moon phase')}
+               max={100}
+               min={0}
+               onChange={(value) => setSettings({ moonPhase: value / 100 })}
+               step={1}
+               value={settings.moonPhase * 100}
+             />
+-            <p className={META_CLASS}>Artistic phase: 0% new, 100% full.</p>
++            <p className={META_CLASS}>{t('Artistic phase: 0% new, 100% full.')}</p>
+           </AdvancedDisclosure>
+ 
+           <AdvancedDisclosure
+@@ -963,24 +965,24 @@ export default function AtmosphereControls() {
+             title="Diagnostics"
+           >
+             <label className="flex min-w-0 flex-col gap-2 text-xs">
+-              <span>Sky output</span>
++              <span>{t('Sky output')}</span>
+               <select
+                 className={SELECT_CLASS}
+                 value={settings.debug}
+                 onChange={(event) => setSettings({ debug: event.target.value as SkyDebug })}
+               >
+-                <option value="none">Composite HDR</option>
+-                <option value="direction">World direction</option>
+-                <option value="rayleigh">Rayleigh only</option>
+-                <option value="mie">Mie only</option>
+-                <option value="haze">Horizon haze</option>
+-                <option value="sun">Sun mask</option>
+-                <option value="clouds">Cloud density</option>
+-                <option value="luminance">Log luminance</option>
++                <option value="none">{t('Composite HDR')}</option>
++                <option value="direction">{t('World direction')}</option>
++                <option value="rayleigh">{t('Rayleigh only')}</option>
++                <option value="mie">{t('Mie only')}</option>
++                <option value="haze">{t('Horizon haze')}</option>
++                <option value="sun">{t('Sun mask')}</option>
++                <option value="clouds">{t('Cloud density')}</option>
++                <option value="luminance">{t('Log luminance')}</option>
+               </select>
+             </label>
+             <p className={META_CLASS}>
+-              Background only. Reflections, fog, and lighting keep the full sky.
++              {t('Background only. Reflections, fog, and lighting keep the full sky.')}
+             </p>
+           </AdvancedDisclosure>
+ 
+@@ -992,14 +994,13 @@ export default function AtmosphereControls() {
+             }}
+             type="button"
+           >
+-            <RotateCcw size={14} aria-hidden /> Reset sky
++            <RotateCcw size={14} aria-hidden /> {t('Reset sky')}
+           </button>
+         </fieldset>
+       </div>
+ 
+       <p className={META_CLASS}>
+-        Project appearance is saved in this browser, not in exported geometry. It stays active when
+-        you return to other tools.
++        {t('Project appearance is saved in this browser, not in exported geometry. It stays active when you return to other tools.')}
+       </p>
+     </div>
+   )
+diff --git a/src/atmosphere/time-orbit.tsx b/src/atmosphere/time-orbit.tsx
+index dbdfb41..1077ebf 100644
+--- a/src/atmosphere/time-orbit.tsx
++++ b/src/atmosphere/time-orbit.tsx
+@@ -1,6 +1,7 @@
+ 'use client'
+ 
+ import { Moon, Sun } from 'lucide-react'
++import { useDisplayText } from '@pascal-app/editor'
+ import { useId, useRef, type KeyboardEvent, type PointerEvent } from 'react'
+ import { formatSkyTime, skyPeriod, wrap } from './settings'
+ import type { SolarState } from './solar'
+@@ -51,6 +52,7 @@ export default function TimeOrbit({
+   disabled: boolean
+   onChange: (hours: number) => void
+ }) {
++  const t = useDisplayText()
+   const id = useId()
+   const drag = useRef<Drag | null>(null)
+   const valueRef = useRef(value)
+@@ -155,7 +157,7 @@ export default function TimeOrbit({
+       <div className="flex items-center justify-between gap-2 px-3 pt-3">
+         <div className="min-w-0">
+           <label htmlFor={`${id}-time`} className="block text-[11px] text-sidebar-foreground/60">
+-            Time of day
++            {t('Time of day')}
+           </label>
+           <input
+             id={`${id}-time`}
+@@ -171,12 +173,12 @@ export default function TimeOrbit({
+             onKeyDown={(event) => event.stopPropagation()}
+           />
+         </div>
+-        <div className="flex shrink-0 gap-1" role="group" aria-label="Time shortcuts">
++        <div className="flex shrink-0 gap-1" role="group" aria-label={t('Time shortcuts')}>
+           <button
+             type="button"
+-            aria-label="Switch to daytime counterpart"
++            aria-label={t('Switch to daytime counterpart')}
+             aria-pressed={daytime}
+-            title="Daytime counterpart · 12 hours apart"
++            title={t('Daytime counterpart · 12 hours apart')}
+             disabled={disabled}
+             className="flex h-11 w-11 items-center justify-center rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-sidebar-accent aria-pressed:text-sidebar-foreground disabled:cursor-not-allowed"
+             onClick={() => {
+@@ -187,9 +189,9 @@ export default function TimeOrbit({
+           </button>
+           <button
+             type="button"
+-            aria-label="Switch to nighttime counterpart"
++            aria-label={t('Switch to nighttime counterpart')}
+             aria-pressed={!daytime}
+-            title="Nighttime counterpart · 12 hours apart"
++            title={t('Nighttime counterpart · 12 hours apart')}
+             disabled={disabled}
+             className="flex h-11 w-11 items-center justify-center rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-sidebar-accent aria-pressed:text-sidebar-foreground disabled:cursor-not-allowed"
+             onClick={() => {
+@@ -202,11 +204,11 @@ export default function TimeOrbit({
+       </div>
+       <div
+         role="slider"
+-        aria-label="Continuous 24-hour time disk"
++        aria-label={t('Continuous 24-hour time disk')}
+         aria-valuemin={0}
+         aria-valuemax={24}
+         aria-valuenow={Math.round(normalized * 60) / 60}
+-        aria-valuetext={`${time}, ${skyPeriod(solar.elevation)}`}
++        aria-valuetext={`${time}, ${t(skyPeriod(solar.elevation))}`}
+         aria-describedby={`${id}-hint`}
+         aria-disabled={disabled}
+         tabIndex={disabled ? -1 : 0}
+@@ -410,17 +412,16 @@ export default function TimeOrbit({
+       </div>
+       <div className="min-w-0 space-y-1 px-3 pb-3 pt-2 text-center">
+         <p className="text-balance text-xs font-medium leading-5 text-sidebar-foreground/80">
+-          {skyPeriod(solar.elevation)}
++          {t(skyPeriod(solar.elevation))}
+         </p>
+         <p
+           id={`${id}-hint`}
+           className="text-pretty text-[11px] leading-4 text-sidebar-foreground/60"
+         >
+-          Drag to change time.
++          {t('Drag to change time.')}
+           <span className="sr-only">
+             {' '}
+-            All 24 hours are continuous. Arrow keys adjust five minutes; Shift adjusts thirty.
+-            Escape cancels a drag.
++            {t('All 24 hours are continuous. Arrow keys adjust five minutes; Shift adjusts thirty. Escape cancels a drag.')}
+           </span>
+         </p>
+       </div>
+diff --git a/src/brush-color-picker.tsx b/src/brush-color-picker.tsx
+index ab51f82..82dd131 100644
+--- a/src/brush-color-picker.tsx
++++ b/src/brush-color-picker.tsx
+@@ -1,6 +1,7 @@
+ 'use client'
+ 
+ import { Check } from 'lucide-react'
++import { useDisplayText } from '@pascal-app/editor'
+ import { useEffect, useId, useRef, useState } from 'react'
+ import { HexColorPicker } from 'react-colorful'
+ 
+@@ -29,6 +30,7 @@ export function BrushColorPicker({
+   value: string
+   onChange: (hex: string) => void
+ }) {
++  const t = useDisplayText()
+   const inputId = useId()
+   const errorId = `${inputId}-error`
+   const externalColor = value
+@@ -52,7 +54,7 @@ export function BrushColorPicker({
+   const commitDraft = (next: string) => {
+     const normalized = normalizeHex(next)
+     if (!normalized) {
+-      setError('Use three or six hexadecimal digits, for example #527A3B.')
++      setError(t('Use three or six hexadecimal digits, for example #527A3B.'))
+       return
+     }
+     updateColor(normalized)
+@@ -72,7 +74,7 @@ export function BrushColorPicker({
+           style={{ backgroundColor: externalColor }}
+         />
+         <div className="min-w-0">
+-          <p className="text-[11px] text-sidebar-foreground/60">Grass color</p>
++          <p className="text-[11px] text-sidebar-foreground/60">{t('Grass color')}</p>
+           <p className="truncate font-mono text-xs font-medium uppercase tabular-nums">
+             {externalColor}
+           </p>
+@@ -80,7 +82,7 @@ export function BrushColorPicker({
+       </div>
+ 
+       <HexColorPicker
+-        aria-label="Grass color"
++        aria-label={t('Grass color')}
+         className="!h-44 !w-full [&_.react-colorful__hue]:!h-6 [&_.react-colorful__hue]:!rounded-md [&_.react-colorful__pointer]:!size-5 [&_.react-colorful__saturation]:!rounded-lg"
+         color={externalColor}
+         onChange={updateColor}
+@@ -88,7 +90,7 @@ export function BrushColorPicker({
+ 
+       <div className="flex flex-col gap-1.5">
+         <label className="text-[11px] font-medium text-sidebar-foreground/70" htmlFor={inputId}>
+-          Hex
++          {t('Hex')}
+         </label>
+         <input
+           id={inputId}
+@@ -135,7 +137,7 @@ export function BrushColorPicker({
+ 
+       <fieldset className="min-w-0">
+         <legend className="mb-1.5 text-[11px] font-medium text-sidebar-foreground/70">
+-          Natural palette
++          {t('Natural palette')}
+         </legend>
+         <div className="grid grid-cols-2 gap-1.5">
+           {GRASS_PALETTE.map((option) => {
+@@ -172,7 +174,7 @@ export function BrushColorPicker({
+                     />
+                   )}
+                 </span>
+-                <span className="truncate">{option.label}</span>
++                <span className="truncate">{t(option.label)}</span>
+               </button>
+             )
+           })}
+diff --git a/src/environment-selector.tsx b/src/environment-selector.tsx
+index 6c28ac1..fe5fc75 100644
+--- a/src/environment-selector.tsx
++++ b/src/environment-selector.tsx
+@@ -1,6 +1,7 @@
+ 'use client'
+ 
+ import * as TooltipPrimitive from '@radix-ui/react-tooltip'
++import { useDisplayText } from '@pascal-app/editor'
+ import {
+   ChevronRight,
+   House,
+@@ -108,6 +109,7 @@ export default function EnvironmentSelector({
+   disabledTools = NO_DISABLED_TOOLS,
+   onSelect,
+ }: EnvironmentSelectorProps) {
++  const t = useDisplayText()
+   const containerRef = useRef<HTMLDivElement>(null)
+   const onSelectRef = useRef(onSelect)
+   onSelectRef.current = onSelect
+@@ -443,8 +445,8 @@ export default function EnvironmentSelector({
+                 sideOffset={12}
+                 updatePositionStrategy={tooltip.followsPointer ? 'always' : 'optimized'}
+               >
+-                {ENVIRONMENT_TOOL_LABELS[tooltip.tool]}
+-                {disabledTools.includes(tooltip.tool) && ' — Coming soon'}
++                {t(ENVIRONMENT_TOOL_LABELS[tooltip.tool])}
++                {disabledTools.includes(tooltip.tool) && ` — ${t('Coming soon')}`}
+                 {!tooltip.followsPointer && (
+                   <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
+                 )}
+@@ -462,6 +464,7 @@ export function EnvironmentCatalogue({
+   disabledTools = NO_DISABLED_TOOLS,
+   onSelect,
+ }: EnvironmentSelectorProps) {
++  const t = useDisplayText()
+   return (
+     <div className={className}>
+       <ul aria-label="Environment tools" className="flex flex-col gap-2">
+@@ -481,14 +484,14 @@ export function EnvironmentCatalogue({
+                 </span>
+                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                   <span className="font-medium text-foreground">
+-                    {ENVIRONMENT_TOOL_LABELS[tool]}
++                    {t(ENVIRONMENT_TOOL_LABELS[tool])}
+                   </span>
+                   <span className="leading-relaxed text-muted-foreground">
+-                    {ENVIRONMENT_TOOL_DESCRIPTIONS[tool]}
++                    {t(ENVIRONMENT_TOOL_DESCRIPTIONS[tool])}
+                   </span>
+                 </span>
+                 {disabled ? (
+-                  <span className="shrink-0 text-muted-foreground">Coming soon</span>
++                  <span className="shrink-0 text-muted-foreground">{t('Coming soon')}</span>
+                 ) : (
+                   <ChevronRight
+                     aria-hidden="true"
+diff --git a/src/panel.tsx b/src/panel.tsx
+index 05b90d4..3bb9604 100644
+--- a/src/panel.tsx
++++ b/src/panel.tsx
+@@ -1,7 +1,7 @@
+ 'use client'
+ 
+ import { type AnyNode, type AnyNodeId, type SiteNode, useScene } from '@pascal-app/core'
+-import { ActionButton, subscribeCameraPose, useEditor } from '@pascal-app/editor'
++import { ActionButton, subscribeCameraPose, useDisplayText, useEditor } from '@pascal-app/editor'
+ import { useViewer } from '@pascal-app/viewer'
+ import {
+   ArrowDownToLine,
+@@ -81,12 +81,13 @@ function WaterTabs({
+   onChange: (tab: 'pond' | 'river') => void
+   children: ReactNode
+ }) {
++  const t = useDisplayText()
+   const id = useId()
+   return (
+     <div className="flex flex-col gap-4">
+       <div
+         role="tablist"
+-        aria-label="Water type"
++        aria-label={t('Water type')}
+         className="grid grid-cols-2 gap-1 rounded-xl bg-sidebar-accent/50 p-1"
+         onKeyDown={(event) => {
+           let next: 'pond' | 'river'
+@@ -121,7 +122,7 @@ function WaterTabs({
+             }`}
+           >
+             {tab === 'pond' ? <Waves aria-hidden size={16} /> : <Route aria-hidden size={16} />}
+-            {tab === 'pond' ? 'Pond' : 'River'}
++            {t(tab === 'pond' ? 'Pond' : 'River')}
+           </button>
+         ))}
+       </div>
+@@ -142,6 +143,7 @@ const GROUND_COVER_INSTRUCTIONS: Record<GroundCoverBrushTool, string> = {
+ }
+ 
+ export default function EnvironmentPanel() {
++  const t = useDisplayText()
+   const environmentEnabled = useEnvironmentStore((state) => state.environmentEnabled)
+   const setEnvironmentEnabled = useEnvironmentStore((state) => state.setEnvironmentEnabled)
+   const environmentDescriptionId = useId()
+@@ -347,13 +349,13 @@ export default function EnvironmentPanel() {
+             tabIndex={-1}
+             className="rounded font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ring"
+           >
+-            Environment
++            {t('Environment')}
+           </h2>
+         </div>
+-        <p className="text-sidebar-foreground/60 text-xs">Choose an area to shape your scene.</p>
++        <p className="text-sidebar-foreground/60 text-xs">{t('Choose an area to shape your scene.')}</p>
+         <div className="rounded-lg bg-sidebar-accent/30 px-3 pb-3">
+           <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 text-xs font-medium">
+-            <span>Enable Environment</span>
++            <span>{t('Enable Environment')}</span>
+             <input
+               aria-describedby={environmentDescriptionId}
+               className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
+@@ -366,8 +368,7 @@ export default function EnvironmentPanel() {
+             id={environmentDescriptionId}
+             className="text-xs leading-relaxed text-sidebar-foreground/60"
+           >
+-            Sky, weather, and surroundings. You can also enable or disable individual features in
+-            their sections.
++            {t('Sky, weather, and surroundings. You can also enable or disable individual features in their sections.')}
+           </p>
+         </div>
+         <div
+@@ -397,7 +398,7 @@ export default function EnvironmentPanel() {
+               }`}
+             >
+               <Icon aria-hidden size={15} />
+-              {label}
++              {t(label)}
+             </button>
+           ))}
+         </div>
+@@ -418,6 +419,7 @@ export default function EnvironmentPanel() {
+ }
+ 
+ function BackButton({ onClick }: { onClick: () => void }) {
++  const t = useDisplayText()
+   return (
+     <button
+       className="-ml-1.5 flex min-h-8 self-start items-center gap-1.5 rounded-lg px-1.5 text-sidebar-foreground/60 text-xs hover:bg-sidebar-accent/50 hover:text-sidebar-foreground active:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring"
+@@ -425,7 +427,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
+       type="button"
+     >
+       <ArrowLeft aria-hidden size={14} />
+-      Environment
++      {t('Environment')}
+     </button>
+   )
+ }
+@@ -445,6 +447,7 @@ function DetailPanel({
+   status?: ReactNode
+   children: ReactNode
+ }) {
++  const t = useDisplayText()
+   const Icon = ENVIRONMENT_TOOL_ICONS[tool]
+   const heading = useRef<HTMLHeadingElement>(null)
+   useEffect(() => {
+@@ -464,10 +467,10 @@ function DetailPanel({
+               tabIndex={-1}
+               className="rounded font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ring"
+             >
+-              {title}
++              {t(title)}
+             </h2>
+             <p className="mt-0.5 text-xs leading-relaxed text-sidebar-foreground/60">
+-              {description}
++              {t(description)}
+             </p>
+           </div>
+         </div>
+@@ -484,12 +487,13 @@ function DetailPanel({
+ }
+ 
+ function ResumeButton({ label, onClick }: { label: string; onClick: () => void }) {
++  const t = useDisplayText()
+   return (
+     <ActionButton
+       className="min-h-10 flex-none focus-visible:outline-2 focus-visible:outline-ring"
+       style={{ minHeight: 40 }}
+       icon={<Brush aria-hidden size={15} />}
+-      label={label}
++      label={t(label)}
+       onClick={onClick}
+       type="button"
+     />
+@@ -521,6 +525,7 @@ function PaintPanel({
+   unavailableMessage?: string
+   children: ReactNode
+ }) {
++  const t = useDisplayText()
+   return (
+     <DetailPanel
+       tool={tool}
+@@ -539,14 +544,14 @@ function PaintPanel({
+                 ) : (
+                   <Pause aria-hidden size={12} />
+                 )}
+-                {active ? activeLabel : 'Paused'}
++                {t(active ? activeLabel : 'Paused')}
+               </span>
+               {active && (
+                 <span className="text-sidebar-foreground/60">
+                   <kbd className="rounded border border-sidebar-border px-1 py-0.5 font-sans">
+                     Esc
+                   </kbd>{' '}
+-                  to stop
++                  {t('to stop')}
+                 </span>
+               )}
+             </div>
+@@ -557,7 +562,7 @@ function PaintPanel({
+     >
+       {!available ? (
+         <p role="status" className="rounded-lg bg-sidebar-accent/50 p-3 text-xs leading-relaxed">
+-          {unavailableMessage}
++          {t(unavailableMessage)}
+         </p>
+       ) : (
+         children
+@@ -567,6 +572,7 @@ function PaintPanel({
+ }
+ 
+ function GroundCoverPaintControls() {
++  const t = useDisplayText()
+   const brush = useEnvironmentStore((state) => state.groundCoverBrush)
+   const tool = useEnvironmentStore((state) => state.groundCoverTool)
+   const heightAmount = useEnvironmentStore((state) => state.groundCoverHeightAmount)
+@@ -654,7 +660,7 @@ function GroundCoverPaintControls() {
+           ]}
+         />
+         <p className="min-h-8 text-xs leading-relaxed text-sidebar-foreground/70">
+-          {GROUND_COVER_INSTRUCTIONS[tool]}
++          {t(GROUND_COVER_INSTRUCTIONS[tool])}
+         </p>
+       </div>
+       <BrushSection title="Brush">
+@@ -709,8 +715,7 @@ function GroundCoverPaintControls() {
+           />
+           <BrushColorPicker value={brush.color} onChange={(color) => setBrush({ color })} />
+           <p className="text-xs leading-relaxed text-sidebar-foreground/60">
+-            Coverage controls where grass grows. Blade size and overall density are in the Grass
+-            Field inspector.
++            {t('Coverage controls where grass grows. Blade size and overall density are in the Grass Field inspector.')}
+           </p>
+         </BrushSection>
+       )}
+@@ -727,13 +732,13 @@ function GroundCoverPaintControls() {
+             onChange={setHeightAmount}
+           />
+           <p className="text-xs leading-relaxed text-sidebar-foreground/60">
+-            Changes grass height under the brush, not the terrain.
++            {t('Changes grass height under the brush, not the terrain.')}
+           </p>
+         </BrushSection>
+       )}
+       <details className="group rounded-lg border border-sidebar-border">
+         <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring">
+-          Brush details
++          {t('Brush details')}
+           <ChevronDown aria-hidden size={14} className="group-open:rotate-180" />
+         </summary>
+         <div className="flex flex-col gap-3 px-3 pb-3">
+@@ -765,7 +770,7 @@ function GroundCoverPaintControls() {
+             onChange={(noiseAmount) => setBrush({ noiseAmount: noiseAmount / 100 })}
+           />
+           <p className="text-xs leading-relaxed text-sidebar-foreground/60">
+-            Higher variation breaks up the stroke for a less uniform result.
++            {t('Higher variation breaks up the stroke for a less uniform result.')}
+           </p>
+         </div>
+       </details>
+@@ -804,9 +809,10 @@ function GroundCoverPaintControls() {
+ }
+ 
+ function BrushSection({ title, children }: { title: string; children: ReactNode }) {
++  const t = useDisplayText()
+   return (
+     <section className="flex flex-col gap-2">
+-      <h3 className="text-xs font-semibold">{title}</h3>
++      <h3 className="text-xs font-semibold">{t(title)}</h3>
+       {children}
+     </section>
+   )
+@@ -823,11 +829,12 @@ function BrushChoices<T extends string>({
+   options: { value: T; label: string; icon?: ReactNode }[]
+   onChange: (value: T) => void
+ }) {
++  const t = useDisplayText()
+   const name = useId()
+   const [focused, setFocused] = useState<T | null>(null)
+   return (
+     <fieldset className="min-w-0">
+-      <legend className="mb-2 text-xs font-medium text-sidebar-foreground/70">{label}</legend>
++      <legend className="mb-2 text-xs font-medium text-sidebar-foreground/70">{t(label)}</legend>
+       <div className="flex gap-1.5">
+         {options.map((option) => (
+           <label className="relative min-w-0 flex-1 cursor-pointer" key={option.value}>
+@@ -858,7 +865,7 @@ function BrushChoices<T extends string>({
+               }}
+             >
+               {option.icon}
+-              {option.label}
++              {t(option.label)}
+             </span>
+           </label>
+         ))}
+@@ -877,6 +884,7 @@ function WholeSiteActions({
+     onConfirm: () => void
+   }[]
+ }) {
++  const t = useDisplayText()
+   const [pending, setPending] = useState<number | null>(null)
+   const [notice, setNotice] = useState('')
+   const container = useRef<HTMLDivElement>(null)
+@@ -892,7 +900,7 @@ function WholeSiteActions({
+   const action = pending === null ? null : actions[pending]
+   return (
+     <div className="flex flex-col gap-2 border-t border-sidebar-border pt-4" ref={container}>
+-      <h3 className="text-xs font-semibold">Whole site</h3>
++      <h3 className="text-xs font-semibold">{t('Whole site')}</h3>
+       {action ? (
+         <div
+           className="flex flex-col gap-3 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3"
+@@ -903,22 +911,22 @@ function WholeSiteActions({
+             }
+           }}
+         >
+-          <p className="text-xs leading-relaxed">{action.description}</p>
++          <p className="text-xs leading-relaxed">{t(action.description)}</p>
+           <div className="flex gap-2">
+             <ActionButton
+               className="min-h-10 focus-visible:outline-2 focus-visible:outline-ring"
+-              label="Cancel"
++              label={t('Cancel')}
+               data-site-cancel=""
+               onClick={() => setPending(null)}
+               type="button"
+             />
+             <ActionButton
+               className="min-h-10 focus-visible:outline-2 focus-visible:outline-ring"
+-              label="Confirm"
++              label={t('Confirm')}
+               onClick={() => {
+                 action.onConfirm()
+                 setPending(null)
+-                setNotice(`${action.label} applied.`)
++                setNotice(t('Changes applied.'))
+               }}
+               type="button"
+             />
+@@ -932,7 +940,7 @@ function WholeSiteActions({
+               data-site-action=""
+               icon={item.icon}
+               key={item.label}
+-              label={item.label}
++              label={t(item.label)}
+               onClick={() => {
+                 returnIndex.current = index
+                 setNotice('')
+@@ -944,13 +952,14 @@ function WholeSiteActions({
+         </div>
+       )}
+       <p className="text-[11px] leading-relaxed text-sidebar-foreground/60" role="status">
+-        {notice || 'Applies across the Site, not just under the brush.'}
++        {notice || t('Applies across the Site, not just under the brush.')}
+       </p>
+     </div>
+   )
+ }
+ 
+ function SurroundingsControls() {
++  const t = useDisplayText()
+   const presetDescriptionId = useId()
+   const site = useScene((state) => {
+     const siteId = state.rootNodeIds.find(
+@@ -1004,7 +1013,7 @@ function SurroundingsControls() {
+     <div className="flex flex-col gap-3">
+       <fieldset className="min-w-0" aria-describedby={presetDescriptionId}>
+         <legend className="mb-2 text-xs font-medium text-sidebar-foreground/70">
+-          Landscape preset
++          {t('Landscape preset')}
+         </legend>
+         <div className="grid grid-cols-3 gap-1.5">
+           {SURROUNDINGS_PRESET_IDS.map((presetId) => {
+@@ -1019,7 +1028,7 @@ function SurroundingsControls() {
+                 type="button"
+               >
+                 <Icon aria-hidden size={23} strokeWidth={1.5} />
+-                {SURROUNDINGS_PRESET_POLICIES[presetId].label}
++                {t(SURROUNDINGS_PRESET_POLICIES[presetId].label)}
+               </button>
+             )
+           })}
+@@ -1028,13 +1037,13 @@ function SurroundingsControls() {
+           className="mt-2 text-xs leading-relaxed text-sidebar-foreground/60"
+           id={presetDescriptionId}
+         >
+-          {SURROUNDINGS_PRESET_POLICIES[preset].description}
++          {t(SURROUNDINGS_PRESET_POLICIES[preset].description)}
+         </p>
+       </fieldset>
+       <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 rounded-lg bg-sidebar-accent/30 px-3 text-xs">
+-        <span>Show surroundings</span>
++        <span>{t('Show surroundings')}</span>
+         <input
+-          aria-label="Show surroundings"
++          aria-label={t('Show surroundings')}
+           className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
+           checked={enabled}
+           onChange={(event) => setEnabled(event.target.checked)}
+@@ -1043,7 +1052,7 @@ function SurroundingsControls() {
+       </label>
+       {!enabled && (
+         <p className="text-xs text-sidebar-foreground/60" role="status">
+-          Surroundings are hidden. Turn them on to preview your changes.
++          {t('Surroundings are hidden. Turn them on to preview your changes.')}
+         </p>
+       )}
+       {preset === 'regional' ? (
+@@ -1056,14 +1065,13 @@ function SurroundingsControls() {
+         />
+       ) : (
+         <section className="flex flex-col gap-2 rounded-lg border border-sidebar-border p-3">
+-          <h3 className="text-xs font-semibold">Road layout</h3>
++          <h3 className="text-xs font-semibold">{t('Road layout')}</h3>
+           <p className="text-xs leading-relaxed text-sidebar-foreground/70">
+-            {SURROUNDINGS_PRESET_POLICIES[preset].label} has no roads or homes. Switch to Regional
+-            to edit property-edge roads. Your road settings are kept.
++            {t('{preset} has no roads or homes. Switch to Regional to edit property-edge roads. Your road settings are kept.') .replace('{preset}', t(SURROUNDINGS_PRESET_POLICIES[preset].label))}
+           </p>
+           <ActionButton
+             className="min-h-10 focus-visible:outline-2 focus-visible:outline-ring"
+-            label="Use Regional roads"
++            label={t('Use Regional roads')}
+             onClick={() => setPreset('regional')}
+             type="button"
+           />
+@@ -1072,13 +1080,13 @@ function SurroundingsControls() {
+       <details className="group rounded-lg border border-sidebar-border">
+         <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring">
+           <span className="flex items-center gap-2">
+-            <Bird aria-hidden size={15} /> Variation &amp; birds
++            <Bird aria-hidden size={15} /> {t('Variation & birds')}
+           </span>
+           <ChevronDown aria-hidden size={14} className="group-open:rotate-180" />
+         </summary>
+         <div className="flex flex-col gap-3 px-3 pb-3">
+           <label className="flex flex-col gap-2 text-xs">
+-            <span>Landscape seed</span>
++            <span>{t('Landscape seed')}</span>
+             <input
+               className="h-10 min-w-0 rounded-md border border-sidebar-border bg-sidebar px-3 focus-visible:outline-2 focus-visible:outline-ring"
+               key={seed}
+@@ -1095,7 +1103,7 @@ function SurroundingsControls() {
+             <label
+               className={`flex min-h-10 items-center justify-between gap-3 text-xs ${enabled ? 'cursor-pointer' : 'text-sidebar-foreground/50'}`}
+             >
+-              <span>Show distant birds</span>
++              <span>{t('Show distant birds')}</span>
+               <input
+                 className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
+                 checked={birdsEnabled}
+@@ -1107,7 +1115,7 @@ function SurroundingsControls() {
+             <label
+               className={`flex min-h-10 items-center justify-between gap-3 text-xs ${enabled && birdsEnabled ? 'cursor-pointer' : 'text-sidebar-foreground/50'}`}
+             >
+-              <span>Animate distant birds</span>
++              <span>{t('Animate distant birds')}</span>
+               <input
+                 className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
+                 checked={ambientMotion}
+@@ -1120,7 +1128,7 @@ function SurroundingsControls() {
+         </div>
+       </details>
+       <p className="text-xs text-sidebar-foreground/60">
+-        Surroundings are saved per project in this browser and excluded from geometry exports.
++        {t('Surroundings are saved per project in this browser and excluded from geometry exports.')}
+       </p>
+     </div>
+   )
+diff --git a/src/parameter-range.tsx b/src/parameter-range.tsx
+index fbc863e..3d96a40 100644
+--- a/src/parameter-range.tsx
++++ b/src/parameter-range.tsx
+@@ -1,6 +1,6 @@
+ 'use client'
+ 
+-import { linearUnitToMeters, metersToLinearUnit } from '@pascal-app/editor'
++import { linearUnitToMeters, metersToLinearUnit, useDisplayText } from '@pascal-app/editor'
+ import { useViewer } from '@pascal-app/viewer'
+ import { useId, useRef, useState } from 'react'
+ 
+@@ -262,6 +262,7 @@ export function ParameterRange({
+   radialLayout?: 'row' | 'tile'
+   onChange: (value: number) => void
+ }) {
++  const t = useDisplayText()
+   const id = useId()
+   const viewerUnit = useViewer((state) => state.unit)
+   const imperial = viewerUnit === 'imperial' && unit === 'm'
+@@ -287,13 +288,13 @@ export function ParameterRange({
+       htmlFor={id}
+       className={`text-xs text-sidebar-foreground/80 ${presentation === 'radial' && radialLayout === 'tile' ? 'w-full' : ''}`}
+     >
+-      {label}
++      {t(label)}
+     </label>
+   )
+   const exactEntry = (
+     <div className="flex h-8 max-w-full items-center gap-1 rounded-md border border-sidebar-border bg-sidebar px-2 focus-within:ring-1 focus-within:ring-ring">
+       <input
+-        aria-label={`${label} value (${displayUnit})`}
++        aria-label={`${t(label)} ${t('value')} (${displayUnit})`}
+         className="w-14 min-w-0 bg-transparent text-right font-mono text-xs tabular-nums outline-none"
+         type="number"
+         min={display(min)}
+@@ -353,7 +354,7 @@ export function ParameterRange({
+             : 'text-[11px] leading-relaxed text-sidebar-foreground/60'
+         }
+       >
+-        Drag the arc or use arrow keys.
++        {t('Drag the arc or use arrow keys.')}
+       </p>
+     )
+ 
+diff --git a/src/pond/controls.tsx b/src/pond/controls.tsx
+index cf97647..20289a8 100644
+--- a/src/pond/controls.tsx
++++ b/src/pond/controls.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { createSceneApi, terrainFieldOf, type AnyNodeId, useScene } from '@pascal-app/core'
+ import { useViewer } from '@pascal-app/viewer'
++import { useDisplayText } from '@pascal-app/editor'
+ import {
+   type LucideIcon,
+   ArrowDownToLine,
+@@ -102,6 +103,7 @@ function PondButton({
+ }
+ 
+ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void }) {
++  const t = useDisplayText()
+   const sceneApi = useMemo(() => createSceneApi(useScene), [])
+   const nodes = useScene((state) => state.nodes)
+   const rootNodeIds = useScene((state) => state.rootNodeIds)
+@@ -179,29 +181,29 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+     setFeedback(result.message)
+   }
+ 
+-  const noBasinReason = 'Select a contained terrain depression first.'
+-  const noWaterReason = info?.pond ? 'The selected pond is empty.' : 'Add water to this basin first.'
++  const noBasinReason = t('Select a contained terrain depression first.')
++  const noWaterReason = t(info?.pond ? 'The selected pond is empty.' : 'Add water to this basin first.')
+ 
+   return (
+     <div className="flex flex-col gap-5">
+       <section className="flex flex-col gap-2">
+-        <h3 className="text-xs font-semibold">Basin</h3>
++        <h3 className="text-xs font-semibold">{t('Basin')}</h3>
+         {info ? (
+           <dl className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-sidebar-border bg-sidebar-accent/30 p-3 text-xs">
+-            <dt className="text-sidebar-foreground/60">Water level</dt>
++            <dt className="text-sidebar-foreground/60">{t('Water level')}</dt>
+             <dd className="text-right font-mono">
+-              {info.level === null ? 'Empty' : formatMetres(info.level)}
++              {info.level === null ? t('Empty') : formatMetres(info.level)}
+             </dd>
+-            <dt className="text-sidebar-foreground/60">Spill level</dt>
++            <dt className="text-sidebar-foreground/60">{t('Spill level')}</dt>
+             <dd className="text-right font-mono">{formatMetres(info.basin.spillLevel)}</dd>
+-            <dt className="text-sidebar-foreground/60">Max depth</dt>
++            <dt className="text-sidebar-foreground/60">{t('Max depth')}</dt>
+             <dd className="text-right font-mono">{formatMetres(info.maxDepth)}</dd>
+           </dl>
+         ) : (
+           <p className="rounded-lg border border-sidebar-border p-3 text-xs leading-relaxed text-sidebar-foreground/70">
+             {hasTerrain
+-              ? 'Click inside an enclosed low point. A click on its slope selects the connected depression below.'
+-              : 'Water needs editable terrain with a contained depression.'}
++              ? t('Click inside an enclosed low point. A click on its slope selects the connected depression below.')
++              : t('Water needs editable terrain with a contained depression')}
+           </p>
+         )}
+         <div className="grid grid-cols-2 gap-2">
+@@ -209,39 +211,39 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+             disabled={!info}
+             disabledReason={noBasinReason}
+             icon={ArrowUpFromLine}
+-            label={`Raise ${levelStep.toFixed(2)} m`}
++            label={t('Raise {distance} m').replace('{distance}', levelStep.toFixed(2))}
+             onClick={() => commitLevel('raise')}
+           />
+           <PondButton
+             disabled={!info?.pond || info.level === null}
+             disabledReason={noWaterReason}
+             icon={ArrowDownToLine}
+-            label={`Lower ${levelStep.toFixed(2)} m`}
++            label={t('Lower {distance} m').replace('{distance}', levelStep.toFixed(2))}
+             onClick={() => commitLevel('lower')}
+           />
+           <PondButton
+             disabled={!info}
+             disabledReason={noBasinReason}
+             icon={PaintBucket}
+-            label="Fill to spill"
++            label={t('Fill to spill')}
+             onClick={() => commitLevel('fill')}
+           />
+           <PondButton
+             disabled={!info?.pond || info.level === null}
+             disabledReason={noWaterReason}
+             icon={CircleOff}
+-            label="Empty"
++            label={t('Empty')}
+             onClick={() => commitLevel('empty')}
+           />
+         </div>
+         <p className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+-          Contours are {levelStep.toFixed(2)} m apart. Water cannot rise above the spill level.
++          {t('Contours are {step} m apart. Water cannot rise above the spill level.').replace('{step}', levelStep.toFixed(2))}
+         </p>
+       </section>
+ 
+       <section className="flex flex-col gap-2">
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span className="font-semibold">Water quality</span>
++          <span className="font-semibold">{t('Water quality')}</span>
+           <select
+             aria-describedby="pond-quality-description"
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+@@ -250,20 +252,20 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+           >
+             {QUALITY_OPTIONS.map((option) => (
+               <option key={option.value} value={option.value}>
+-                {option.label}
++                {t(option.label)}
+               </option>
+             ))}
+           </select>
+         </label>
+         <p id="pond-quality-description" className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+-          {QUALITY_OPTIONS.find((option) => option.value === selectedQuality)?.description}
+-          {!info?.pond ? ' This preset will be used when the basin first receives water.' : ''}
++          {t(QUALITY_OPTIONS.find((option) => option.value === selectedQuality)?.description ?? '')}
++          {!info?.pond ? ` ${t('This preset will be used when the basin first receives water.')}` : ''}
+         </p>
+       </section>
+ 
+       <section className="flex flex-col gap-2">
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span className="font-semibold">Shoreline</span>
++          <span className="font-semibold">{t('Shoreline')}</span>
+           <select
+             aria-describedby="pond-shoreline-description"
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-ring"
+@@ -271,16 +273,16 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+             onChange={(event) => changeShoreline(event.target.value as PondShoreline)}
+             value={info?.pond?.shoreline ?? 'soft'}
+           >
+-            <option value="soft">Soft bank</option>
+-            <option value="rocky">Rocky bank</option>
++            <option value="soft">{t('Soft bank')}</option>
++            <option value="rocky">{t('Rocky bank')}</option>
+           </select>
+         </label>
+         <p id="pond-shoreline-description" className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+           {!info?.pond
+-            ? 'Add water to choose a shoreline treatment.'
++            ? t('Add water to choose a shoreline treatment.')
+             : info.pond.shoreline === 'rocky'
+-              ? 'Natural stones follow the waterline and the sculpted terrain.'
+-              : 'A gentle shallow-water transition blends into the bank.'}
++              ? t('Natural stones follow the waterline and the sculpted terrain.')
++              : t('A gentle shallow-water transition blends into the bank.')}
+         </p>
+       </section>
+ 
+@@ -288,30 +290,32 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+ 
+       <section className="flex flex-col gap-2">
+         <div className="flex items-center justify-between gap-3">
+-          <h3 className="text-xs font-semibold">Water props</h3>
++          <h3 className="text-xs font-semibold">{t('Water props')}</h3>
+           <span className="font-mono text-[11px] text-sidebar-foreground/60">
+-            {lilyCount} lilies · {koiCount}/32 koi
++            {t('{lilies} lilies · {koi}/32 koi')
++              .replace('{lilies}', String(lilyCount))
++              .replace('{koi}', String(koiCount))}
+           </span>
+         </div>
+         <PondButton
+           disabled={props.length === 0}
+-          disabledReason="This pond has no props to clear."
++          disabledReason={t('This pond has no props to clear.')}
+           icon={Trash2}
+-          label="Clear props"
++          label={t('Clear props')}
+           onClick={clearProps}
+         />
+         <p className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+-          Up to 128 props per pond. Dry props are retained and reappear when water returns.
++            {t('Up to 128 props per pond. Dry props are retained and reappear when water returns.')}
+         </p>
+       </section>
+ 
+       {!info ? (
+         <section className="flex flex-col gap-2 border-t border-sidebar-border pt-4">
+-          <h3 className="text-xs font-semibold">Need a deeper basin?</h3>
++          <h3 className="text-xs font-semibold">{t('Need a deeper basin?')}</h3>
+           <p className="text-xs leading-relaxed text-sidebar-foreground/60">
+-            Use Pascal Terrain to lower the centre and keep a higher rim around it.
++            {t('Use Pascal Terrain to lower the centre and keep a higher rim around it.')}
+           </p>
+-          <PondButton icon={Mountain} label="Sculpt Terrain" onClick={onSculptTerrain} />
++          <PondButton icon={Mountain} label={t('Sculpt Terrain')} onClick={onSculptTerrain} />
+         </section>
+       ) : null}
+ 
+@@ -320,7 +324,7 @@ export function PondControls({ onSculptTerrain }: { onSculptTerrain: () => void
+         className="min-h-8 rounded-md bg-sidebar-accent/35 px-3 py-2 text-xs leading-relaxed text-sidebar-foreground/70"
+         role="status"
+       >
+-        {feedback || 'Select a depression, then raise one contour interval or fill it to the spill level.'}
++        {feedback ? t(feedback) : t('Select a depression, then raise one contour interval or fill it to the spill level.')}
+       </p>
+     </div>
+   )
+@@ -333,10 +337,11 @@ function PondPropMode({
+   value: PondToolMode
+   onChange: (mode: PondToolMode) => void
+ }) {
++  const t = useDisplayText()
+   const name = useId()
+   return (
+     <fieldset className="min-w-0">
+-      <legend className="mb-2 text-xs font-semibold">Canvas action</legend>
++      <legend className="mb-2 text-xs font-semibold">{t('Canvas action')}</legend>
+       <div className="grid grid-cols-2 gap-1 rounded-lg bg-sidebar-accent/50 p-1">
+         {PROP_MODE_OPTIONS.map((option) => {
+           const Icon = option.icon
+@@ -352,7 +357,7 @@ function PondPropMode({
+               />
+               <span className="flex min-h-9 items-center justify-center gap-1.5 rounded-md px-2 text-xs text-sidebar-foreground/70 hover:bg-sidebar-accent peer-checked:bg-sidebar-accent peer-checked:text-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+                 <Icon aria-hidden size={14} />
+-                {option.label}
++                {t(option.label)}
+               </span>
+             </label>
+           )
+diff --git a/src/river/controls.tsx b/src/river/controls.tsx
+index 9c83e5b..6c93300 100644
+--- a/src/river/controls.tsx
++++ b/src/river/controls.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { createSceneApi, type AnyNodeId, useScene } from '@pascal-app/core'
+ import { useEditor } from '@pascal-app/editor'
++import { useDisplayText } from '@pascal-app/editor'
+ import { useViewer } from '@pascal-app/viewer'
+ import { ArrowLeftRight, Check, MousePointer2, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+ import { useMemo } from 'react'
+@@ -60,6 +61,7 @@ function RiverButton({
+ }
+ 
+ export function RiverControls() {
++  const t = useDisplayText()
+   const sceneApi = useMemo(() => createSceneApi(useScene), [])
+   const nodes = useScene((state) => state.nodes)
+   const rootNodeIds = useScene((state) => state.rootNodeIds)
+@@ -279,10 +281,10 @@ export function RiverControls() {
+       <section aria-labelledby="river-path-heading" className="flex flex-col gap-3">
+         <div className="flex items-center justify-between gap-3">
+           <h3 className="text-xs font-semibold" id="river-path-heading">
+-            Path
++            {t('Path')}
+           </h3>
+           <span className="rounded-full bg-sidebar-accent px-2 py-1 font-medium text-[11px] text-sidebar-foreground/70 tabular-nums">
+-            {pointSummary}
++            {t(pointSummary)}
+           </span>
+         </div>
+         <figure className="overflow-hidden rounded-lg border border-sidebar-border bg-sidebar-accent/25 px-3 py-2.5">
+@@ -318,43 +320,43 @@ export function RiverControls() {
+             />
+           </svg>
+           <figcaption className="text-[11px] leading-relaxed text-sidebar-foreground/65">
+-            Points set the river centerline; width and depth turn that path into a carved channel.
++            {t('Points set the river centerline; width and depth turn that path into a carved channel.')}
+           </figcaption>
+         </figure>
+-        <p className="text-xs leading-relaxed text-sidebar-foreground/80">{pathInstruction}</p>
++        <p className="text-xs leading-relaxed text-sidebar-foreground/80">{t(pathInstruction)}</p>
+         <p
+           aria-live="polite"
+           className="min-h-8 rounded-md bg-sidebar-accent/40 px-3 py-2 text-xs leading-relaxed text-sidebar-foreground/75"
+           role="status"
+         >
+-          {feedback || pathStatus}
++          {feedback ? t(feedback) : t(pathStatus)}
+         </p>
+         {draft ? (
+           <>
+-            <RiverButton
++                <RiverButton
+               disabled={pointCount < 2}
+-              disabledReason="Place at least two river points."
++              disabledReason={t('Place at least two river points.')}
+               emphasized
+               icon={Check}
+-              label="Finish river"
++              label={t('Finish river')}
+               onClick={finish}
+             />
+             <div className="grid grid-cols-2 gap-2">
+               <RiverButton
+                 disabled={pointCount === 0}
+-                disabledReason="Place a river point before removing one."
++                disabledReason={t('Place a river point before removing one.')}
+                 icon={RotateCcw}
+-                label="Remove last point"
++                label={t('Remove last point')}
+                 onClick={removeLastPoint}
+               />
+-              <RiverButton icon={X} label="Cancel" onClick={cancelDraft} />
++              <RiverButton icon={X} label={t('Cancel')} onClick={cancelDraft} />
+             </div>
+           </>
+         ) : editingRiverId ? (
+           <RiverButton
+             emphasized
+             icon={Check}
+-            label="Done editing path"
++            label={t('Done editing path')}
+             onClick={finishPathEditing}
+           />
+         ) : (
+@@ -363,16 +365,16 @@ export function RiverControls() {
+               <RiverButton
+                 emphasized
+                 icon={MousePointer2}
+-                label="Edit path"
++                label={t('Edit path')}
+                 onClick={togglePathEditing}
+               />
+             ) : null}
+             <RiverButton
+               disabled={!canStart}
+-              disabledReason="Add or select an editable Site first."
++              disabledReason={t('Add or select an editable Site first.')}
+               emphasized={!selectedRiver}
+               icon={Plus}
+-              label="Draw new river"
++              label={t('Draw new river')}
+               onClick={startNewRiver}
+             />
+           </>
+@@ -380,10 +382,10 @@ export function RiverControls() {
+       </section>
+ 
+       <section className="flex flex-col gap-3">
+-        <h3 className="text-xs font-semibold">Channel</h3>
++        <h3 className="text-xs font-semibold">{t('Channel')}</h3>
+         <ParameterRange
+           commitOnRelease
+-          label="Width"
++          label={t('Width')}
+           max={24}
+           min={1}
+           onChange={(width) => changeSettings({ width })}
+@@ -394,7 +396,7 @@ export function RiverControls() {
+         />
+         <ParameterRange
+           commitOnRelease
+-          label="Depth"
++          label={t('Depth')}
+           max={8}
+           min={0.1}
+           onChange={(depth) => changeSettings({ depth })}
+@@ -404,44 +406,43 @@ export function RiverControls() {
+           value={values.depth}
+         />
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span>First endpoint</span>
++          <span>{t('First endpoint')}</span>
+           <select
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+             onChange={(event) => changeSettings({ source: event.target.value as RiverSource })}
+             value={values.source}
+           >
+-            <option value="rounded">Rounded</option>
+-            <option value="mountain">Mountain source</option>
++            <option value="rounded">{t('Rounded')}</option>
++            <option value="mountain">{t('Mountain source')}</option>
+           </select>
+         </label>
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span>Last endpoint</span>
++          <span>{t('Last endpoint')}</span>
+           <select
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+             onChange={(event) => changeSettings({ outlet: event.target.value as RiverOutlet })}
+             value={values.outlet}
+           >
+-            <option value="rounded">Rounded</option>
++            <option value="rounded">{t('Rounded')}</option>
+             <option disabled={!seaOutletAvailable} value="sea">
+-              Sea outlet
++              {t('Sea outlet')}
+             </option>
+           </select>
+         </label>
+         <p className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+-          Mountain and sea connections continue procedurally beyond the Site; the authored river and
+-          its exports stay inside the Site.
++          {t('Mountain and sea connections continue procedurally beyond the Site; the authored river and its exports stay inside the Site.')}
+         </p>
+         {!seaOutletAvailable ? (
+           <p className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+-            Sea outlet is unavailable because the current Surroundings seed has no coast.
++            {t('Sea outlet is unavailable because the current Surroundings seed has no coast.')}
+           </p>
+         ) : null}
+       </section>
+ 
+       <section className="flex flex-col gap-3">
+-        <h3 className="text-xs font-semibold">Flow</h3>
++        <h3 className="text-xs font-semibold">{t('Flow')}</h3>
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span>Direction</span>
++          <span>{t('Direction')}</span>
+           <select
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+             onChange={(event) =>
+@@ -449,13 +450,13 @@ export function RiverControls() {
+             }
+             value={values.flowDirection}
+           >
+-            <option value="forward">Forward</option>
+-            <option value="reverse">Reverse</option>
++            <option value="forward">{t('Forward')}</option>
++            <option value="reverse">{t('Reverse')}</option>
+           </select>
+         </label>
+         <ParameterRange
+           commitOnRelease
+-          label="Speed"
++          label={t('Speed')}
+           max={3}
+           min={0}
+           onChange={(flowSpeed) => changeSettings({ flowSpeed })}
+@@ -466,14 +467,14 @@ export function RiverControls() {
+         />
+         <p className="flex items-center gap-1.5 text-[11px] leading-relaxed text-sidebar-foreground/60">
+           <ArrowLeftRight aria-hidden size={13} />
+-          Direction follows the first point toward the last; reverse flips the visible current.
++          {t('Direction follows the first point toward the last; reverse flips the visible current.')}
+         </p>
+       </section>
+ 
+       <section className="flex flex-col gap-3">
+-        <h3 className="text-xs font-semibold">Appearance</h3>
++        <h3 className="text-xs font-semibold">{t('Appearance')}</h3>
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span>Water quality</span>
++          <span>{t('Water quality')}</span>
+           <select
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+             onChange={(event) => changeSettings({ quality: event.target.value as WaterQuality })}
+@@ -481,20 +482,20 @@ export function RiverControls() {
+           >
+             {QUALITY_OPTIONS.map((option) => (
+               <option key={option.value} value={option.value}>
+-                {option.label}
++                {t(option.label)}
+               </option>
+             ))}
+           </select>
+         </label>
+         <label className="flex min-h-10 items-center justify-between gap-3 text-xs">
+-          <span>Shoreline</span>
++          <span>{t('Shoreline')}</span>
+           <select
+             className="h-9 rounded-md border border-sidebar-border bg-transparent px-3 text-sidebar-foreground text-xs focus-visible:outline-2 focus-visible:outline-ring"
+             onChange={(event) => changeSettings({ shoreline: event.target.value as PondShoreline })}
+             value={values.shoreline}
+           >
+-            <option value="soft">Soft bank</option>
+-            <option value="rocky">Rocky bank</option>
++            <option value="soft">{t('Soft bank')}</option>
++            <option value="rocky">{t('Rocky bank')}</option>
+           </select>
+         </label>
+       </section>
+@@ -504,7 +505,7 @@ export function RiverControls() {
+           <RiverButton
+             destructive
+             icon={Trash2}
+-            label="Delete river"
++            label={t('Delete river')}
+             onClick={removeSelectedRiver}
+           />
+         </section>
+diff --git a/src/surroundings/frontage-selector.tsx b/src/surroundings/frontage-selector.tsx
+index 3a33dc1..fb094c1 100644
+--- a/src/surroundings/frontage-selector.tsx
++++ b/src/surroundings/frontage-selector.tsx
+@@ -1,6 +1,7 @@
+ 'use client'
+ 
+ import { useMemo, useState } from 'react'
++import { useDisplayText } from '@pascal-app/editor'
+ 
+ import {
+   DEFAULT_NEIGHBOR_CELL_VARIATION,
+@@ -75,6 +76,7 @@ export default function FrontageSelector({
+   points,
+   seed,
+ }: FrontageSelectorProps) {
++  const t = useDisplayText()
+   const [selectedEdge, setSelectedEdge] = useState(0)
+   const previewPlan = useMemo(() => {
+     try {
+@@ -225,22 +227,22 @@ export default function FrontageSelector({
+   return (
+     <div className="overflow-hidden rounded-lg border border-sidebar-border bg-sidebar-accent/20">
+       <div className="flex items-center justify-between gap-2 px-3 pt-3 text-xs">
+-        <span className="font-medium">Road layout</span>
+-        <span className="text-sidebar-foreground/60">Camera aligned</span>
++        <span className="font-medium">{t('Road layout')}</span>
++        <span className="text-sidebar-foreground/60">{t('Camera aligned')}</span>
+       </div>
+       <div className="flex flex-col gap-2 px-3 py-3">
+         <div className="flex items-center justify-between gap-2 text-xs">
+-          <span className="font-medium">Edge {activeSegment.index + 1}</span>
+-          <span className="text-sidebar-foreground/60">Select an edge below</span>
++          <span className="font-medium">{t('Edge {index}').replace('{index}', String(activeSegment.index + 1))}</span>
++          <span className="text-sidebar-foreground/60">{t('Select an edge below')}</span>
+         </div>
+         <div
+-          aria-label={`Edge ${activeSegment.index + 1} road type`}
++          aria-label={t('Edge {index} road type').replace('{index}', String(activeSegment.index + 1))}
+           className="grid grid-cols-3 gap-1 rounded-md bg-sidebar-accent/40 p-1"
+           role="group"
+         >
+           {SEPARATOR_OPTIONS.map((option) => (
+             <button
+-              aria-label={option.label}
++              aria-label={t(option.label)}
+               aria-pressed={activeSegment.context.separator === option.value}
+               className={`min-h-10 rounded px-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring ${activeSegment.context.separator === option.value ? 'bg-sidebar font-medium text-sidebar-foreground shadow-sm' : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'}`}
+               key={option.value}
+@@ -248,10 +250,10 @@ export default function FrontageSelector({
+               type="button"
+             >
+               {option.value === 'none'
+-                ? 'No road'
++                ? t('No road')
+                 : option.value === 'secondary-road'
+-                  ? 'Secondary'
+-                  : 'Primary'}
++                  ? t('Secondary')
++                  : t('Primary')}
+             </button>
+           ))}
+         </div>
+@@ -439,16 +441,18 @@ export default function FrontageSelector({
+           </g>
+         </svg>
+         <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-sidebar-foreground/60">
+-          Site
++          {t('Site')}
+         </span>
+ 
+-        <div aria-label="Property edges" role="group">
++        <div aria-label={t('Property edges')} role="group">
+           {segmentShapes.map(({ arrowEnd, presentation, segment }) => {
+             const position = rotatePreviewPoint(arrowEnd, rotationDegrees, previewViewBox.center)
+             const selected = segment.index === activeSegment.index
+             return (
+               <button
+-                aria-label={`Edge ${segment.index + 1}: ${presentation.label}`}
++                aria-label={t('Edge {index}: {type}')
++                  .replace('{index}', String(segment.index + 1))
++                  .replace('{type}', t(presentation.label))}
+                 aria-pressed={selected}
+                 className={`absolute flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring ${presentation.lineClassName}`}
+                 key={segment.index}
+@@ -457,7 +461,9 @@ export default function FrontageSelector({
+                   left: `${((position[0] - previewViewBox.x) / previewViewBox.width) * 100}%`,
+                   top: `${((position[1] - previewViewBox.y) / previewViewBox.height) * 100}%`,
+                 }}
+-                title={`Edge ${segment.index + 1} · ${presentation.label}`}
++                title={t('Edge {index} · {type}')
++                  .replace('{index}', String(segment.index + 1))
++                  .replace('{type}', t(presentation.label))}
+                 type="button"
+               >
+                 <span

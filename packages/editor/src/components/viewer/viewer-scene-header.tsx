@@ -14,6 +14,7 @@ import { ArrowLeft, ChevronRight, Layers } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { useDisplayText } from '../../lib/display-text'
 import { cn } from '../../lib/utils'
 import { ViewerUnitsPanel } from './viewer-units-panel'
 
@@ -47,6 +48,7 @@ export const ViewerSceneHeader = ({
   backHref = '/',
   stats,
 }: ViewerSceneHeaderProps) => {
+  const t = useDisplayText()
   const selection = useViewer((s) => s.selection)
 
   // Subscribe only to the specific nodes we read so that creating an unrelated
@@ -103,7 +105,7 @@ export const ViewerSceneHeader = ({
         <div className="flex items-center gap-3 px-3 py-2.5">
           {onBack ? (
             <button
-              aria-label="Back"
+              aria-label={t('Back')}
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-white/10"
               onClick={onBack}
               type="button"
@@ -112,7 +114,7 @@ export const ViewerSceneHeader = ({
             </button>
           ) : (
             <Link
-              aria-label="Back"
+              aria-label={t('Back')}
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-white/10"
               href={backHref}
               prefetch={false}
@@ -122,7 +124,7 @@ export const ViewerSceneHeader = ({
           )}
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium text-foreground text-sm">
-              {projectName || 'Untitled'}
+              {projectName || t('Untitled')}
             </div>
             {owner?.username && (
               <Link
@@ -147,7 +149,7 @@ export const ViewerSceneHeader = ({
                 className="text-muted-foreground transition-colors hover:text-foreground"
                 onClick={() => handleBreadcrumbClick('root')}
               >
-                Site
+                {t('Site')}
               </button>
 
               <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
@@ -155,7 +157,7 @@ export const ViewerSceneHeader = ({
                 className={`truncate transition-colors ${level ? 'text-muted-foreground hover:text-foreground' : 'font-medium text-foreground'}`}
                 onClick={() => handleBreadcrumbClick('building')}
               >
-                {building.name || 'Building'}
+                {building.name || t('Building')}
               </button>
 
               {level && (
@@ -165,7 +167,7 @@ export const ViewerSceneHeader = ({
                     className={`truncate transition-colors ${zone ? 'text-muted-foreground hover:text-foreground' : 'font-medium text-foreground'}`}
                     onClick={() => handleBreadcrumbClick('level')}
                   >
-                    {getLevelDisplayName(level)}
+                    {t(getLevelDisplayName(level))}
                   </button>
                 </>
               )}
@@ -185,7 +187,7 @@ export const ViewerSceneHeader = ({
                 <>
                   <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
                   <span className="truncate font-medium text-foreground">
-                    {getNodeName(selectedNode)}
+                    {t(getNodeName(selectedNode))}
                   </span>
                 </>
               )}
@@ -198,7 +200,7 @@ export const ViewerSceneHeader = ({
       {building && levels.length > 0 && (
         <div className="corner-smooth pointer-events-auto flex w-48 flex-col overflow-hidden rounded-2xl border border-border/40 bg-background/95 py-1 shadow-elevation-4 backdrop-blur-xl transition-colors duration-200 ease-out">
           <span className="px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
-            Levels
+            {t('Levels')}
           </span>
           <div className="flex flex-col">
             {levels.map((lvl) => {
@@ -224,7 +226,7 @@ export const ViewerSceneHeader = ({
                       <Layers className="h-3.5 w-3.5" />
                     </span>
                     <div className="min-w-0 flex-1 truncate text-left">
-                      {getLevelDisplayName(lvl)}
+                      {t(getLevelDisplayName(lvl))}
                     </div>
                   </div>
                 </button>

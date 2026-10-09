@@ -15,6 +15,7 @@ import {
   type SnapContext,
 } from '../../../lib/snapping-mode'
 import { cn } from '../../../lib/utils'
+import { useDisplayText } from '../../../lib/display-text'
 import useEditor, { type GridSnapStep } from '../../../store/use-editor'
 import useFenceCurveDraft from '../../../store/use-fence-curve-draft'
 import { ShortcutToken } from '../primitives/shortcut-token'
@@ -51,6 +52,7 @@ function ShortcutSequence({
   active?: boolean
   keys: Array<string | string[]>
 }) {
+  const t = useDisplayText()
   return (
     <div className={KEY_CELL_CLASS}>
       {keys.map((entry, index) => (
@@ -68,6 +70,8 @@ function ShortcutSequence({
                 ) : null}
                 <ShortcutToken
                   className={cn(TOKEN_CLASS, active && 'border-white bg-white text-black shadow-sm')}
+                  displayValue={t(alternative)}
+                  localizedLabel={t(alternative)}
                   value={alternative}
                 />
               </Fragment>
@@ -75,6 +79,8 @@ function ShortcutSequence({
           ) : (
             <ShortcutToken
               className={cn(TOKEN_CLASS, active && 'border-white bg-white text-black shadow-sm')}
+              displayValue={t(entry)}
+              localizedLabel={t(entry)}
               value={entry}
             />
           )}
@@ -110,14 +116,23 @@ function ChipRow({
   shortcut?: string
   tooltip?: string
 }) {
+  const t = useDisplayText()
+  const translatedLabel = t(label)
   const body = (
     <>
       <span className={KEY_CELL_CLASS}>
-        {shortcut ? <ShortcutToken className={TOKEN_CLASS} value={shortcut} /> : null}
+        {shortcut ? (
+          <ShortcutToken
+            className={TOKEN_CLASS}
+            displayValue={t(shortcut)}
+            localizedLabel={t(shortcut)}
+            value={shortcut}
+          />
+        ) : null}
       </span>
       <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
         {icon ? <Icon className="shrink-0" height={13} icon={icon} width={13} /> : null}
-        <span className="truncate">{label}</span>
+        <span className="truncate">{translatedLabel}</span>
       </span>
     </>
   )
@@ -130,7 +145,7 @@ function ChipRow({
 
   const button = (
     <button
-      aria-label={ariaLabel ?? label}
+      aria-label={t(ariaLabel ?? label)}
       className={cn(
         ROW_CLASS,
         'pointer-events-auto cursor-pointer items-center rounded-md text-left transition-colors hover:bg-muted/60',
@@ -148,7 +163,7 @@ function ChipRow({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side="left">{tooltip}</TooltipContent>
+      <TooltipContent side="left">{t(tooltip)}</TooltipContent>
     </Tooltip>
   )
 }
@@ -177,6 +192,7 @@ function nextGridSnapStep(step: GridSnapStep): GridSnapStep {
 // The active interaction's snapping controls, scoped to its context (wall / item
 // / polygon) so each action shows only the modes that make sense for it.
 function SnappingChips({ context }: { context: SnapContext }) {
+  const t = useDisplayText()
   const snappingMode = useEditor((s) => s.snappingModeByContext[context])
   const setSnappingMode = useEditor((s) => s.setSnappingMode)
   const gridSnapStep = useEditor((s) => s.gridSnapStep)
@@ -187,10 +203,10 @@ function SnappingChips({ context }: { context: SnapContext }) {
   return (
     <>
       <ChipRow
-        ariaLabel={`Snapping: ${SNAPPING_MODE_LABELS[snappingMode]}`}
+        ariaLabel={`${t('Snapping')}: ${t(SNAPPING_MODE_LABELS[snappingMode])}`}
         guideTarget="snap-mode"
         icon={SNAPPING_MODE_ICONS[snappingMode]}
-        label={`Snapping: ${SNAPPING_MODE_LABELS[snappingMode]}`}
+        label={`${t('Snapping')}: ${t(SNAPPING_MODE_LABELS[snappingMode])}`}
         onClick={() => {
           setSnappingMode(context, cycleSnappingModeIn(context, snappingMode))
           sfxEmitter.emit('sfx:grid-snap')
@@ -200,9 +216,9 @@ function SnappingChips({ context }: { context: SnapContext }) {
       />
       {gridActive ? (
         <ChipRow
-          ariaLabel={`Grid step: ${gridSnapStep.toFixed(2)} m`}
+          ariaLabel={`${t('Grid step')}: ${gridSnapStep.toFixed(2)} m`}
           guideTarget="snap-grid-step"
-          label={`Grid: ${gridSnapStep.toFixed(2)} m`}
+          label={`${t('Grid')}: ${gridSnapStep.toFixed(2)} m`}
           onClick={() => {
             setGridSnapStep(nextGridSnapStep(gridSnapStep))
             sfxEmitter.emit('sfx:grid-snap')
@@ -220,9 +236,10 @@ function SnappingChips({ context }: { context: SnapContext }) {
 // current value's label, and clicking the row (or the hint's key, handled by
 // the tool itself) cycles it.
 function ToolHintChipRow({ hint }: { hint: ToolHint & { chip: NonNullable<ToolHint['chip']> } }) {
+  const t = useDisplayText()
   const { chip } = hint
   const value = useSyncExternalStore(chip.subscribe, chip.value, chip.value)
-  const label = chip.labels[value] ?? hint.label
+  const label = t(chip.labels[value] ?? hint.label)
   return (
     <ChipRow
       ariaLabel={label}
@@ -230,21 +247,22 @@ function ToolHintChipRow({ hint }: { hint: ToolHint & { chip: NonNullable<ToolHi
       label={label}
       onClick={chip.cycle}
       shortcut={hint.key}
-      tooltip={chip.tooltip}
+      tooltip={chip.tooltip ? t(chip.tooltip) : undefined}
     />
   )
 }
 
 function ContinuationChip({ context }: { context: ContinuationContext }) {
+  const t = useDisplayText()
   const mode = useEditor((s) => s.getContinuation(context))
   const cycleContinuation = useEditor((s) => s.cycleContinuation)
   const profile = CONTINUATION_PROFILES[context]
-  const label = profile.labels[mode] ?? mode
+  const label = t(profile.labels[mode] ?? mode)
   const icon = profile.icons[mode] ?? 'lucide:repeat'
 
   return (
     <ChipRow
-      ariaLabel={`Continuation: ${label}`}
+      ariaLabel={`${t('Continuation')}: ${label}`}
       icon={icon}
       label={label}
       onClick={() => cycleContinuation(context)}
@@ -384,6 +402,7 @@ export function ContextualHelperPanel({
   showPaintScope?: boolean
   continuationContext?: ContinuationContext | null
 }) {
+  const t = useDisplayText()
   if (
     hints.length === 0 &&
     chipHints.length === 0 &&
@@ -422,11 +441,11 @@ export function ContextualHelperPanel({
                 hint.active ? 'font-medium text-white' : 'text-muted-foreground',
               )}
             >
-              {hint.label}
+              {t(hint.label)}
             </div>
             {hint.subtitle ? (
               <div className="text-[10px] text-muted-foreground/70 leading-snug">
-                {hint.subtitle}
+                {t(hint.subtitle)}
               </div>
             ) : null}
           </div>

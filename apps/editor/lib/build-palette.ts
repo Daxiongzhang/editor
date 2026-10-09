@@ -9,10 +9,12 @@ import {
 } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
 import { getRoofFootprintSource, type RoofFootprintSource } from '@/lib/build-tab-state'
+import type { MessageKey } from '@/lib/i18n'
 
 export type BuildType = {
   id: string
   label: string
+  labelKey?: MessageKey
   iconSrc: string
   kind?: string
   paletteOrder?: number
@@ -22,6 +24,7 @@ export type BuildType = {
 export type MepItem = {
   id: string
   label: string
+  labelKey?: MessageKey
   iconSrc: string
   kind: string
 }
@@ -34,36 +37,127 @@ export type RoofFeature = {
 }
 
 export const BASE_BUILD_TYPES: BuildType[] = [
-  { id: 'wall', label: 'Wall', iconSrc: '/icons/wall.webp', kind: 'wall' },
-  { id: 'fence', label: 'Fence', iconSrc: '/icons/fence.webp', kind: 'fence' },
-  { id: 'slab', label: 'Slab', iconSrc: '/icons/floor.webp', kind: 'slab' },
-  { id: 'ceiling', label: 'Ceiling', iconSrc: '/icons/ceiling.webp', kind: 'ceiling' },
-  { id: 'roof', label: 'Roof', iconSrc: '/icons/roof.webp', kind: 'roof' },
-  { id: 'stair', label: 'Stairs', iconSrc: '/icons/stairs.webp', kind: 'stair' },
-  { id: 'elevator', label: 'Elevator', iconSrc: '/icons/elevator.webp', kind: 'elevator' },
-  { id: 'door', label: 'Door', iconSrc: '/icons/door.webp', kind: 'door' },
-  { id: 'window', label: 'Window', iconSrc: '/icons/window.webp', kind: 'window' },
-  { id: 'column', label: 'Column', iconSrc: '/icons/column.webp', kind: 'column' },
-  { id: 'shelf', label: 'Shelf', iconSrc: '/icons/shelf.webp', kind: 'shelf' },
-  { id: 'spawn', label: 'Spawn Point', iconSrc: '/icons/spawn-point.webp', kind: 'spawn' },
-  { id: 'kitchen', label: 'Kitchen', iconSrc: '/icons/kitchen.webp' },
-  { id: 'mep', label: 'MEP', iconSrc: '/icons/HVAC.webp' },
-  { id: 'painting', label: 'Painting', iconSrc: '/icons/paint.webp', mode: 'material-paint' },
-  { id: 'terrain', label: 'Terrain', iconSrc: '/icons/mesh.webp', mode: 'terrain-sculpt' },
+  { id: 'wall', label: 'Wall', labelKey: 'build.wall', iconSrc: '/icons/wall.webp', kind: 'wall' },
+  {
+    id: 'fence',
+    label: 'Fence',
+    labelKey: 'build.fence',
+    iconSrc: '/icons/fence.webp',
+    kind: 'fence',
+  },
+  { id: 'slab', label: 'Slab', labelKey: 'build.slab', iconSrc: '/icons/floor.webp', kind: 'slab' },
+  {
+    id: 'ceiling',
+    label: 'Ceiling',
+    labelKey: 'build.ceiling',
+    iconSrc: '/icons/ceiling.webp',
+    kind: 'ceiling',
+  },
+  { id: 'roof', label: 'Roof', labelKey: 'build.roof', iconSrc: '/icons/roof.webp', kind: 'roof' },
+  {
+    id: 'stair',
+    label: 'Stairs',
+    labelKey: 'build.stairs',
+    iconSrc: '/icons/stairs.webp',
+    kind: 'stair',
+  },
+  {
+    id: 'elevator',
+    label: 'Elevator',
+    labelKey: 'build.elevator',
+    iconSrc: '/icons/elevator.webp',
+    kind: 'elevator',
+  },
+  { id: 'door', label: 'Door', labelKey: 'build.door', iconSrc: '/icons/door.webp', kind: 'door' },
+  {
+    id: 'window',
+    label: 'Window',
+    labelKey: 'build.window',
+    iconSrc: '/icons/window.webp',
+    kind: 'window',
+  },
+  {
+    id: 'column',
+    label: 'Column',
+    labelKey: 'build.column',
+    iconSrc: '/icons/column.webp',
+    kind: 'column',
+  },
+  {
+    id: 'shelf',
+    label: 'Shelf',
+    labelKey: 'build.shelf',
+    iconSrc: '/icons/shelf.webp',
+    kind: 'shelf',
+  },
+  {
+    id: 'spawn',
+    label: 'Spawn Point',
+    labelKey: 'build.spawnPoint',
+    iconSrc: '/icons/spawn-point.webp',
+    kind: 'spawn',
+  },
+  { id: 'kitchen', label: 'Kitchen', labelKey: 'build.kitchen', iconSrc: '/icons/kitchen.webp' },
+  { id: 'mep', label: 'MEP', labelKey: 'build.mep', iconSrc: '/icons/HVAC.webp' },
+  {
+    id: 'painting',
+    label: 'Painting',
+    labelKey: 'build.painting',
+    iconSrc: '/icons/paint.webp',
+    mode: 'material-paint',
+  },
+  {
+    id: 'terrain',
+    label: 'Terrain',
+    labelKey: 'build.terrain',
+    iconSrc: '/icons/mesh.webp',
+    mode: 'terrain-sculpt',
+  },
 ]
 
 export const MEP_ITEMS: MepItem[] = [
-  { id: 'duct-segment', label: 'Duct', iconSrc: '/icons/duct.webp', kind: 'duct-segment' },
+  {
+    id: 'duct-segment',
+    label: 'Duct',
+    labelKey: 'build.duct',
+    iconSrc: '/icons/duct.webp',
+    kind: 'duct-segment',
+  },
   {
     id: 'duct-terminal',
     label: 'Register',
+    labelKey: 'build.register',
     iconSrc: '/icons/registers.webp',
     kind: 'duct-terminal',
   },
-  { id: 'hvac-equipment', label: 'HVAC Unit', iconSrc: '/icons/HVAC.webp', kind: 'hvac-equipment' },
-  { id: 'lineset', label: 'Lineset', iconSrc: '/icons/lineset.webp', kind: 'lineset' },
-  { id: 'liquid-line', label: 'Liquid Line', iconSrc: '/icons/lineset.webp', kind: 'liquid-line' },
-  { id: 'pipe-segment', label: 'DWV Pipe', iconSrc: '/icons/dwv-pipes.webp', kind: 'pipe-segment' },
+  {
+    id: 'hvac-equipment',
+    label: 'HVAC Unit',
+    labelKey: 'build.hvacUnit',
+    iconSrc: '/icons/HVAC.webp',
+    kind: 'hvac-equipment',
+  },
+  {
+    id: 'lineset',
+    label: 'Lineset',
+    labelKey: 'build.lineset',
+    iconSrc: '/icons/lineset.webp',
+    kind: 'lineset',
+  },
+  {
+    id: 'liquid-line',
+    label: 'Liquid Line',
+    labelKey: 'build.liquidLine',
+    iconSrc: '/icons/lineset.webp',
+    kind: 'liquid-line',
+  },
+  {
+    id: 'pipe-segment',
+    label: 'DWV Pipe',
+    labelKey: 'build.dwvPipe',
+    iconSrc: '/icons/dwv-pipes.webp',
+    kind: 'pipe-segment',
+  },
 ]
 
 export const MEP_TOOL_KINDS = new Set<string>([
@@ -72,6 +166,11 @@ export const MEP_TOOL_KINDS = new Set<string>([
   'pipe-fitting',
   'pipe-trap',
 ])
+
+const REGISTERED_BUILD_LABEL_KEYS: Partial<Record<string, MessageKey>> = {
+  block: 'build.block',
+  'streetscape:road-network': 'build.road',
+}
 
 const MODULAR_CABINET_CATALOG_ITEM = CATALOG_ITEMS.find((item) => item.id === 'cabinet')
 export const MODULAR_CABINET_ICON = MODULAR_CABINET_CATALOG_ITEM?.thumbnail ?? '/icons/item.webp'
@@ -100,6 +199,7 @@ export function collectBuildTypes(floorplanMode: FloorplanMode): BuildType[] {
       id: kind,
       kind,
       label: presentation.label,
+      labelKey: REGISTERED_BUILD_LABEL_KEYS[kind],
       iconSrc: presentation.icon.kind === 'url' ? presentation.icon.src : '/icons/spawn-point.webp',
       paletteOrder: presentation.paletteOrder ?? Number.MAX_SAFE_INTEGER,
     })

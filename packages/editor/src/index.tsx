@@ -392,6 +392,11 @@ export {
   nextContinuation,
 } from './lib/continuation'
 export { canDirectMoveNode } from './lib/direct-manipulation'
+export {
+  DisplayTextProvider,
+  type DisplayTextTranslator,
+  useDisplayText,
+} from './lib/display-text'
 export { createEditorApi } from './lib/editor-api'
 export {
   clearStructuralElevationGuide,
